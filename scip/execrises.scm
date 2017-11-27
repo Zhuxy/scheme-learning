@@ -170,8 +170,42 @@
 (displayn "dot-product: " (dot-product `(1 2 3) `(4 5 6)))
 
 (define (matrix-*-vector m v)
-    (map ??? m))
+    (map (lambda (x) (dot-product x v)) m))
 
+(displayn "matrix-*-vector: " 
+        (matrix-*-vector
+            `((1 2 3) (4 5 6))
+            `(1 2 3)))
+
+(define (transpose mat)
+    (accumulate-n cons `() mat))
+
+(displayn "transpose: " (transpose `((1 2 3) (4 5 6))))
+
+
+(define (matrix-*-matrix m n)
+    (let ((cols (transpose n)))
+        (map (lambda (x) (matrix-*-vector m x)) m)))
+
+(displayn "matrix-*-matrix: " 
+        (matrix-*-matrix
+            `((1 2 3) (4 5 6))
+            `((1 4) (2 5) (3 6))))
+
+;2.38
+(define (fold-right op initial sequence)
+    (cond 
+        ((null? sequence) initial)
+        (else (op (car sequence) (fold-right op initial (cdr sequence))))))
+
+(define (fold-left op initial sequence)
+    (define (iter result rest)
+       (if (null? rest) result
+            (iter (op result (car rest)) (cdr rest))))
+    (iter initial sequence))
+
+(displayn "fold-right: " (fold-right / 1 `(1 2 3)))
+(displayn "fold-left: " (fold-left / 1 `(1 2 3)))
 
 
 
