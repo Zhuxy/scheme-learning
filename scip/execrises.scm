@@ -207,6 +207,50 @@
 (displayn "fold-right: " (fold-right / 1 `(1 2 3)))
 (displayn "fold-left: " (fold-left / 1 `(1 2 3)))
 
+;2.39
+(define temp
+    (lambda (x y)
+        (append y (list x))))
+
+(define (reverse-fold-right list)
+    (fold-right 
+            ;(lambda (x y) (append y (list x)))
+            temp
+            `() list))
+
+(displayn "reverse-fold-right: " (reverse-fold-right `(1 2 3 4 5)))
+
+(define (reverse-fold-left list)
+    (fold-left 
+            (lambda (x y) (cons y x)) 
+            `() list))
+
+(displayn "reverse-fold-left: " (reverse-fold-left `(1 2 3 4 5)))
+
+
+(define (flatmap proc sequence)
+    (accumulate append `()
+        (map proc sequence)))
+
+(displayn "flatmap: " 
+    (flatmap
+        (lambda (x) (map (lambda (y) (* y 2)) x)) `((1 2 3) (4 5 6) (7 8 9))))
+
+(define (remove x s)
+    (filter (lambda (y) (not (= x y))) s))
+
+(displayn "remove: " (remove 1 `(2 1 3 4)))
+
+(define (permutations s)
+    (if (null? s) `(())
+        (flatmap 
+                (lambda (x) 
+                    (map (lambda (p) (cons x p))
+                        (permutations (remove x s))))
+            x)))
+
+
+
 
 
 
