@@ -247,14 +247,35 @@
                 (lambda (x) 
                     (map (lambda (p) (cons x p))
                         (permutations (remove x s))))
-            x)))
+            s)))
 
+(displayn "permutations: " (permutations `(1 2 3)))
 
+;2.40
+(define (enumerate-interval l h)
+    (if (> l h) `()
+        (cons l (enumerate-interval (+ l 1) h))))
 
+(displayn "enumerate-interval: " (enumerate-interval 1 10))
 
+(define (unique-pairs n)
+    (flatmap 
+        (lambda (x)
+            (map (lambda (p) (list x p))
+                (enumerate-interval (+ x 1) n)))
+        (enumerate-interval 1 n)))
 
+(displayn "unique-pairs: " (unique-pairs 5))
 
+;2.41
+(define (make-triples n)
+    (flatmap
+        (lambda (x)
+            (map (lambda (p) (append x (list p)))
+                (enumerate-interval (+ (cadr x) 1) n)))
+        (unique-pairs n)))
 
+(displayn "make-triples: " (make-triples 5))
 
 
 
