@@ -30,12 +30,11 @@
 
 (define reverse
 	(lambda (list)
-        (begin
             (define reverse-it 
                 (lambda (source target)
                     (if (null? source) target
                         (reverse-it (cdr source) (cons (car source) target)))))
-            (reverse-it list `()))))
+            (reverse-it list `())))
 
 (displayn "reverse: " (reverse `(a b c d e)))
 
@@ -63,14 +62,13 @@
 ;2.27
 (define deep-reverse
     (lambda (list)
-        (begin
             (define reverse-it 
                 (lambda (source target)
                     (cond
                         ((null? source) target)
                         ((atom? source) source)
                         (else (reverse-it (cdr source) (cons (reverse-it (car source) `()) target))))))
-            (reverse-it list `()))))
+            (reverse-it list `())))
 
 (displayn "deep-reverse: " (deep-reverse `(2 (3 4 5) ((6 7 (8 9)) 10))))
 
