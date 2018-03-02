@@ -275,11 +275,13 @@
 
 (displayn "make-triples: " (make-triples 5))
 
-(define (menq list e)
+(define (menq e list)
     (cond 
         ((null? list) '())
         ((eq? (car list) e) list)
-        (else (memq (cdr list) e)))
+        (else (memq e (cdr list)))))
+
+(displayn "memq: " (memq `b `(a b c d)))
 
 
 
