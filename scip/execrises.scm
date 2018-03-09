@@ -277,14 +277,39 @@
 
 (define (menq e list)
     (cond 
-        ((null? list) '())
+        ((null? list) #f)
         ((eq? (car list) e) list)
         (else (memq e (cdr list)))))
 
-(displayn "memq: " (memq `b `(a b c d)))
+(displayn "memq: " (memq `b `[a [b c] d b e]))
 
+;2.54
+(define (equal? list1 list2)
+    (cond 
+        ((eq? list1 list2) #t)
+        ((and (list? list1) (list? list2) (eq? (car list1) (car list2))) 
+                (equal? (cdr list1) (cdr list2)))
+        (else #f)))
 
+(displayn "equal?: " (equal? `(a b c) `(a b c)))
+(displayn "equal?: " (equal? `a `a))
 
+(displayn "equal?: " (equal? (quote (quasiquote abracadabra)) ``abracadabra))
+
+;阴阳数列
+(letrec (
+    (female (lambda(n) 
+                (if (= n 0) 1
+                        (- n (male (female (- n 1)))))
+            ))
+    (male (lambda(n)
+                (if (= n 0) 0
+                        (- n (female (male (- n 1))))))))
+    (display "i male(i) female(i)")(newline)
+    (do
+        ((i 0 (+ i 1)))
+        ((> i 8) #f)
+        (display i) (display "   ")(display (male i))(display "         ")(display (female i))(newline)))
 
 
 
