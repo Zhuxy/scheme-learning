@@ -74,3 +74,39 @@
     (lambda (x k) (k (+ x 1))) 
     '(1 2 3)
     (lambda (x) x)))(newline)
+    
+    
+
+(define acc-cc
+    (lambda (list init fn collector)
+        (if (null? list) (collector init)
+            (collector (+ (fn (car list)) (call/cc (lambda (k) (k (acc-cc (cdr list) init fn collector)))) ))
+        )
+    ))
+
+(display 
+    (acc-cc `(1 2 3 4) 100
+        (lambda (x) (* 2 x))
+        (lambda (x) x)))(newline)
+        
+        
+        
+(define (generate-one-element-at-a-time lst)
+    (define (control-state return)
+        (for-each
+            (lambda (element)
+                (set! return 
+                    (call/cc
+                        (lambda (resume-here)
+                            (set! control-state resume-here)
+                            (return element)
+                        ))))
+            lst)
+        (return 'you-fell-off-the-end)
+    )
+    (define (generator)
+        (call/cc control-state))
+    generator)
+
+(define generate-digit
+    (generate-one-element-at-a-time '(0 1 2)))
