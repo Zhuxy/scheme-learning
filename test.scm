@@ -56,14 +56,14 @@
 (define acc-cc
     (lambda (list init fn collector)
         (if (null? list) (collector init)
-            (collector (+ (fn (car list)) (call/cc (lambda (k) (k (acc-cc (cdr list) init fn collector)))) ))
+            (+ (fn (car list)) (call/cc (lambda (k) (k (acc-cc (cdr list) init fn collector)))) )
         )
     ))
 
 (display 
     (acc-cc `(1 2 3 4) 100
         (lambda (x) (* 2 x))
-        (lambda (x) x)))(newline)
+        (lambda (x) (* x 2))))(newline)
 
 (define (map-k f xs k)
   (if (null? xs) (k '())
