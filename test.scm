@@ -39,13 +39,13 @@
             (fn (car list)
                 ;这里就是continuation, 表示之后的所有计算过程
                 ;包含了我当前的计算结果, 交给之后的迭代去计算剩余的?
-                (lambda (sum)
-                    (collector (+ sum
-                        (acc-cps
-                            (cdr list)
-                            init
-                            fn
-                            collector))))
+                (lambda (first)
+                    (acc-cps
+                        (cdr list)
+                        init
+                        fn
+                        (lambda (others)
+                            (collector (+ first others)))))
             ))))
 
 (display 
