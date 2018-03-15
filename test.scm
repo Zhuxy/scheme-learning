@@ -1,3 +1,21 @@
+;阴阳数列
+(letrec (
+    (female (lambda(n) 
+                (if (= n 0) 1
+                        (- n (male (female (- n 1)))))
+            ))
+    (male (lambda(n)
+                (if (= n 0) 0
+                        (- n (female (male (- n 1))))))))
+    (display "i male(i) female(i)")(newline)
+    (do
+        ((i 0 (+ i 1)))
+        ((> i 8) #f)
+        (display i) (display "   ")(display (male i))(display "         ")(display (female i))(newline)))
+
+
+
+
 ;使用闭包的方式实现negerator
 (define (generator start end)
     (let 
@@ -89,8 +107,6 @@
         (lambda (x) (* 2 x))
         (lambda (x) x)))(newline)
         
-        
-        
 (define (generate-one-element-at-a-time lst)
     (define (control-state return)
         (for-each
@@ -110,3 +126,11 @@
 
 (define generate-digit
     (generate-one-element-at-a-time '(0 1 2)))
+
+(display (generate-digit))(newline)
+(display (generate-digit))(newline)
+(display (generate-digit))(newline)
+(display (generate-digit))(newline)
+(display (generate-digit))(newline)
+
+
