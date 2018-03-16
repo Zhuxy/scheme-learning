@@ -133,4 +133,5 @@
 (display (generate-digit))(newline)
 (display (generate-digit))(newline)
 
-
+;endless loop
+;(let ((cont #f)) (call/cc (lambda (k) (set! cont k))) (cont 1))
