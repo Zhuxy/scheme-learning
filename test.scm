@@ -135,3 +135,7 @@
 
 ;endless loop
 ;(let ((cont #f)) (call/cc (lambda (k) (set! cont k))) (cont 1))
+
+(define (test a . others)
+    (display others))
+(test `1 `2 `3)

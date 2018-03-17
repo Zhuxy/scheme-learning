@@ -1,6 +1,7 @@
 (library-directories "..")
 (import (modules))
 
+;2.60
 (define (element-of-set? x set)
 	(cond ((null? set) #f)
 		((equal? x (car set)) #t)
@@ -22,7 +23,6 @@
 (displayn "intersection-set: " (intersection-set `(1 2) `(3 4)))
 (displayn "intersection-set: " (intersection-set `(1 2 3) `(2 3 4)))
 
-;2.59
 (define (union-set set1 set2)
 	(cond 
 		((null? set1) set2)

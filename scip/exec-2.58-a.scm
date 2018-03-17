@@ -74,7 +74,7 @@
             (make-sum (deriv (addend e) var) (deriv (augend e) var)))
         ((product? e)
             (make-sum 
-                (make-product (multiplier e) (deriv (multiplicand e) var)) 
+                (make-product (multiplier e) (deriav (multiplicand e) var)) 
                 (make-product (multiplicand e) (deriv (multiplier e) var))))
         (else #f)
     ))
