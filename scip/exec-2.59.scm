@@ -9,7 +9,7 @@
 (displayn "element-of-set?: " (element-of-set? `1 `(1 2 3)))
 (displayn "element-of-set?: " (element-of-set? `4 `(1 2 3)))
 
-(define (adjoin x set)
+(define (adjoin-set x set)
   	(if (element-of-set? x set) set
   		(cons x set)))
 
