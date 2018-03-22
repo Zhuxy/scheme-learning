@@ -89,5 +89,10 @@
 	`(7 (5 (4 () ()) (6 () ())) (9 (8 () ()) (10 () ())))))
 
 
+(trace-define (lookup given-key tree-of-records)
+	(cond ((null? tree-of-records) #f)
+		((eq? given-key (entry tree-of-records)) #t)
+		(else (or (lookup given-key (left-branch tree-of-records)) (lookup given-key (right-branch tree-of-records))))))
 
+(displayn "lookup in tree: " (lookup 9 tree))
 
