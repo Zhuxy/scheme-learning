@@ -8,7 +8,7 @@
  	(list `leaf symbol weight))
 
 (define (leaf? node)
-	(eq? (car node) `leaf))
+	(and (not (null? node)) (eq? (car node) `leaf)))
 
 (define (symbol-leaf leaf)
  	(cadr leaf))
@@ -42,26 +42,34 @@
 
 ;解码算法, 输入010101序列和huffman树
 (define (decode bits tree)
-	(if (null? bits) `()
-		(let ((next-branch (choose-branch (car bits) tree)))
-			(if (leaf? next-branch)
-				(cons (symbol-leaf next-branch) (decode (cdr bits) tree))
-				(decode (cdr bits) next-branch)))))
+	(define (decode-l bits current-branch)
+		(if (null? bits) `()
+			(let ((next-branch (choose-branch (car bits) current-branch)))
+				(if (leaf? next-branch)
+					(cons (symbol-leaf next-branch) (decode (cdr bits) tree))
+					(decode-l (cdr bits) next-branch)))))
+	(decode-l bits tree))
 
 ;开始实现huaffman算法来构造huffman树
 ;输入是带权重的元素集合(符号 权重)
-;先创建叶子集合, 等待归并
-(define (make-leaf-set pairs)
-	(if (null? pairs) `()
-		(cons (make-leaf (caar pairs) (cadar pairs)) (make-leaf-set (cdr pairs)))))
-
-(displayn "make-leaf-set: " (make-leaf-set `((a 1) (b 2) (c 3))))
 
 ;归并算法过程中需要组合叶子与子树
 (define (adjoin-set x set)
 	(cond ((null? set) (list x))
 		((< (weight x) (weight (car set))) (cons x set))
 		(else (cons (car set) (adjoin-set x (cdr set))))))
+
+;先创建叶子集合, 等待归并
+(define (make-leaf-set pairs)
+	(if (null? pairs) `()
+		(adjoin-set (make-leaf (caar pairs) (cadar pairs)) (make-leaf-set (cdr pairs)))))
+		;(let ((pair (car pairs)))
+		;	(adjoin-set (make-leaf (car pair) (cadr pair))
+		;			(make-leaf-set (cdr pairs))))))
+
+(displayn "make-leaf-set: " (make-leaf-set `((a 1) (b 2) (c 3))))
+
+
 
 (displayn "adjoin-set: " (adjoin-set `(leaf d 4) (make-leaf-set `((a 1) (b 2) (c 3) (e 5)))))
 
@@ -80,6 +88,53 @@
 
 (displayn "decode: " (decode sample-message sample-tree))
 
+;2.68
+;从一串符号和一颗huffman树编码成0101串
+(define (encode message tree)
+	(if (null? message) `()
+		(append (encode-symbol (car message) tree)
+			(encode (cdr message) tree))))
+
+(define (encode-symbol-l symbol tree result)
+	(if (null? tree) result
+		(let ((left (left-branch tree)) (right (right-branch tree)))
+			(cond 
+				((and (leaf? left) 
+						(eq? symbol (symbol-leaf left))) 
+						(append result `(0)))
+				((and (leaf? right) 
+						(eq? symbol (symbol-leaf right))) 
+						(append result `(1)))
+				((and (leaf? left) 
+						(not (eq? symbol (symbol-leaf left))))
+						(encode-symbol-l symbol right (append `(1) result)))
+				((and (leaf? right) 
+						(not (eq? symbol (symbol-leaf right))))
+						(encode-symbol-l symbol left (append `(0) result)))
+			))))
+
+(define (encode-symbol symbol tree)
+	(encode-symbol-l symbol tree `()))
+
+;(displayn "encode-symbol-l: " (encode-symbol-l `c `((leaf d 1) (leaf c 1) (d c) 2) `()))
+
+(displayn "encode-symbol" (encode `(a d a b b c a) sample-tree))
+		
+;2.69
+;生成huffman树
+(define (generate-huffman-tree pairs)
+	(successive-merge (make-leaf-set pairs)))
+
+;使用归并算法和make-code-tree
+(define (successive-merge leafs)
+	(if (null? (cddr leafs)) (make-code-tree (car leafs) (cadr leafs)) ;只有2个元素直接合成
+		;合并前2个元素, 与剩余的排个序, 再递归
+		(let ((head (make-code-tree (car leafs) (cadr leafs))))
+			(successive-merge (adjoin-set head (cddr leafs))))))
+
+(displayn "successive-merge" (successive-merge `((leaf a 1) (leaf b 2) (leaf c 3) (leaf d 4))))
+
+(displayn "generate-huffman-tree" (generate-huffman-tree `((a 1) (b 2) (c 1) (d 5) (e 3) (f 4) (g 7))))
 
 
 
