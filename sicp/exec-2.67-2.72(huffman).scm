@@ -95,26 +95,44 @@
 		(append (encode-symbol (car message) tree)
 			(encode (cdr message) tree))))
 
-(define (encode-symbol-l symbol tree result)
-	(if (null? tree) result
-		(let ((left (left-branch tree)) (right (right-branch tree)))
-			(cond 
-				((and (leaf? left) 
-						(eq? symbol (symbol-leaf left))) 
-						(append result `(0)))
-				((and (leaf? right) 
-						(eq? symbol (symbol-leaf right))) 
-						(append result `(1)))
-				((and (leaf? left) 
-						(not (eq? symbol (symbol-leaf left))))
-						(encode-symbol-l symbol right (append `(1) result)))
-				((and (leaf? right) 
-						(not (eq? symbol (symbol-leaf right))))
-						(encode-symbol-l symbol left (append `(0) result)))
-			))))
+(define (find-in-tree given tree)
+	(if (and (leaf? tree) (eq? given (symbol-leaf tree))) #t
+		(not (eq? (find (lambda (x) (eq? x given)) (symbols tree)) #f))))
+
+(displayn "find-in-tree: " (find-in-tree `a sample-tree))
+
 
 (define (encode-symbol symbol tree)
-	(encode-symbol-l symbol tree `()))
+	(if (and (leaf? tree) (eq? symbol (symbol-leaf tree))) `()
+		(let ((left (left-branch tree)) (right (right-branch tree)))
+			(cond ((find-in-tree symbol left) (cons `0 (encode-symbol symbol left)))
+				((find-in-tree symbol right) (cons `1 (encode-symbol symbol right)))
+				(else (error "symbol not found in tree" symbol))
+			))))
+
+(displayn "encode-symbol: " (encode-symbol `a `(leaf a 4)))
+
+;(define (encode-symbol-l symbol tree result)
+;	(if (null? tree) result
+;		(let ((left (left-branch tree)) (right (right-branch tree)))
+;			(cond 
+;				((and (leaf? left) 
+;						(eq? symbol (symbol-leaf left))) 
+;						(append result `(0)))
+;				((and (leaf? right) 
+;						(eq? symbol (symbol-leaf right))) 
+;						(append result `(1)))
+;				((and (leaf? left) 
+;						(not (eq? symbol (symbol-leaf left))))
+;						(encode-symbol-l symbol right (append `(1) result)))
+;				((and (leaf? right) 
+;						(not (eq? symbol (symbol-leaf right))))
+;						(encode-symbol-l symbol left (append `(0) result)))
+;				(else (append result (encode-symbol-l symbol left `()) (encode-symbol-l symbol right `())))
+;			))))
+
+;(define (encode-symbol symbol tree)
+;	(encode-symbol-l symbol tree `()))
 
 ;(displayn "encode-symbol-l: " (encode-symbol-l `c `((leaf d 1) (leaf c 1) (d c) 2) `()))
 
@@ -136,5 +154,22 @@
 
 (displayn "generate-huffman-tree" (generate-huffman-tree `((a 1) (b 2) (c 1) (d 5) (e 3) (f 4) (g 7))))
 
+;2.70
+(define rock-pairs `((a 2) (na 16) (boom 1) (sha 3) (get 2) (yip 9) (job 2) (wah 1)))
+(define rock-huffman-tree (generate-huffman-tree rock-pairs))
+(displayn "rock-huffman-tree: " rock-huffman-tree)
+(displayn "encode get a job: " (encode `(get a job) rock-huffman-tree))
+(displayn "encode sha na na na na na na na na: " (encode `(sha na na na na na na na na) rock-huffman-tree))
+(displayn "encode wah yip yip yip yip yip yip yip yip yip: " (encode `(wah yip yip yip yip yip yip yip yip yip) rock-huffman-tree))
+(displayn "encode sha boom: " (encode `(sha boom) rock-huffman-tree))
 
 
+;2.71
+;1 2 4 8 16 ... 2^(n-1)
+;归并算法最频繁字符必然是0或1?
+;最长编码依赖于归并的次数, n?
+
+(displayn "generate-huffman-tree" (generate-huffman-tree `((a 1) (b 2) (c 4) (d 8) (e 16))))
+
+;2.72
+;算法复杂度是 2n
