@@ -1,0 +1,33 @@
+(library-directories "..")
+(import (modules))
+
+;2.77
+(define table `())
+(define (put op type item)
+    (set! table (cons (list op type item) table)))
+(define (get op type)
+    (define (get-l op type list)
+        (if (null? list) (error "no op and type found in table" (list op type))
+            (let ((head (car list)))
+                (if (and (eq? op (car head)) (eq? type (cadr head))) (caddr head)
+                    (get-l op type (cdr list))))))
+    (get-l op type table))
+
+(define (add x y) (apply—generic add X y))
+(define (sub X y) (apply—generic sub X y))
+(define (mul X y) (apply—generic mul X y))
+(define (div X y) (apply—generic div X y))
+
+(define (install-scheme-number-package) 
+    (define (tag x) (attach—tag `scheme—number x))
+    (put `add `(scheme—number scheme—number)
+        (lambda (x y) (tag (+ x y))))
+    (put `sub `(scheme—number scheme—number) 
+        (lambda (x y) (tag (— x y))))
+    (put `mul `(scheme—number scheme—number)
+        (lambda (x y) (tag (* x y))))
+    (put `div `(scheme—number scheme—number) 
+        (lambda (x y) (tag (/ x y)))) 
+    (put `make `scheme—number 
+        (lambda (x) (tag x)))
+    `done)
