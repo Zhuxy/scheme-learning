@@ -1,19 +1,33 @@
 (library-directories "..")
 (import (modules))
 
-;2.77
 (define table `())
 
 (define (put op type item)
     (set! table (cons (list op type item) table)))
 
-(trace-define (get op type)
+(define (get op type)
     (define (get-l op type list)
         (if (null? list) #f
             (let ((head (car list)))
                 (if (and (equal? op (car head)) (equal? type (cadr head))) (caddr head)
                     (get-l op type (cdr list))))))
     (get-l op type table))
+
+;强制数据类型转换
+(define coercion-table `())
+
+(define (put-coercion t1 t2 f)
+    (set! coercion-table (cons (list t1 t2 f) coercion-table)))
+
+(define (get-coercioin t1 t2)
+    (define (get-l t1 t2 table)
+        (if (null? table) #f
+            (let ((head (car table)))
+                (if (and (equal? t1 (car head)) (equal? t2 (cadr head))) (caddr head)
+                    (get-l t1 t2 (cdr table))))))
+    (get-l t1 t2 coercion-table))
+
 
 (define (attach-tag type-tag contents)
     (if (number? contents) contents
@@ -24,22 +38,29 @@
         ((number? datum) `scheme-number)
         (else (error "Bad tagged datum -- TYPE-TAG" datum))))
 
-(trace-define (contents datum)
+(define (contents datum)
     (cond ((number? datum) datum)
         ((pair? datum) (cdr datum))
         (else (error "Bad tagged datum -- CONTENTS" datum))))
 
 (trace-define (apply-generic op . args)
     (let ((type-tags (map type-tag args)))
-        ;(display op)(newline)
-        ;(display type-tags)(newline)
         (let ((proc (get op type-tags)))
             (if proc
                 (apply proc (map contents args))
-                (error "no method for these types -- APPLY-GENERIC" (list op type-tags))))))
+                (if (= (length args) 2)
+                    (let ((t1 (car type-tags)) (t2 (cadr type-tags))
+                            (a1 (car args)) (a2 (cadr args)))
+                        (if (equal? t1 t2)
+                            (let ((t1->t2 (get-coercioin t1 t2))
+                                    (t2->t1 (get-coercioin t2 t1)))
+                                (cond (t1->t2 (apply-generic op (t1->t2 a1) a2))
+                                        (t2->t1 (apply-generic op a1 (t2->t1 a2)))
+                                        (else (error "No method for these types" (list op type-tags))))))
+                            (error "No method for these types" (list op type-tags)))
+                    (error "No method for these types" (list op type-tags)))))))
 
 (define (square x) (* x x))
-
 
 (define (add x y) (apply-generic `add x y))
 (define (sub x y) (apply-generic `sub x y))
@@ -58,12 +79,11 @@
         (lambda (x y) (tag (/ x y))))
     (put `equ? `(scheme-number scheme-number) =)
     (put `=zero? `(scheme-number) (lambda (x) (= x 0)))
+    (put `exp `(scheme-number scheme-number) (lambda (x y) (tag (expt x y))))
     (put `make `scheme-number 
         (lambda (x) (tag x)))
     `done)
 (install-scheme-number-package)
-
-(displayn "add scheme number:" (add (cons `scheme-number 1) (cons `scheme-number 2)))
 
 (define (install-rational-package)
     (define (numer x) (car x)) 
@@ -101,8 +121,6 @@
 
 (define (make-rational n d)
     ((get `make `rational) n d))
-
-(displayn "add rational: " (add (make-rational 1 2) (make-rational 1 3)))
 
 (define (install-rectangular-package)
     (define (real-part z) (car z))
@@ -164,7 +182,7 @@
         (apply-generic `magnitude z))
     (define (angle z)
         (apply-generic `angle z))
-    (define (add-complex zl z2)
+    (define (add-complex z1 z2)
         (make-from-real-imag (+ (real-part z1) (real-part z2))
                             (+ (imag-part z1) (imag-part z2))))
     (define (sub-complex z1 z2)
@@ -201,23 +219,18 @@
 (define (make-complex-from-mag-ang r a)
     ((get `make-from-mag-ang `complex) r a))
 
-;2.77
-(displayn "magnitude complex: " (apply-generic `magnitude (make-complex-from-real-imag 3 4)))
+(define (scheme-number->complex x)
+    (make-complex-from-real-imag (contents x) 0))
 
-;2.78
-(displayn "scheme-number add: " (apply-generic `add 1 2))
+(put-coercion `scheme-number `complex scheme-number->complex)
 
-;2.79
-(displayn "scheme-number equ?: " (apply-generic `equ? 1 1))
-(displayn "rational equ?: " (apply-generic `equ? (make-rational 1 2) (make-rational 1 2)))
-;不同表述系统的复数的相等判断, 会存在精度的误差
+(displayn "add scheme-number and complex" (apply-generic `add 1 (make-complex-from-real-imag 2 3)))
 
-;2.80
+(define (exp x y) (apply-generic `exp x y))
+
+(displayn "scheme-number exp: " (exp 2 3))
 
 
-
-
-
-
+(displayn "complex exp: " (exp (make-complex-from-real-imag 1 2) 3))
 
 
