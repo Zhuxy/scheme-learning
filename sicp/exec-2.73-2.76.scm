@@ -142,7 +142,7 @@
     (define (get-l op type list)
         (if (null? list) (error "no op and type found in table" (list op type))
             (let ((head (car list)))
-                (if (and (eq? op (car head)) (eq? type (cadr head))) (caddr head)
+                (if (and (equal? op (car head)) (equal? type (cadr head))) (caddr head)
                     (get-l op type (cdr list))))))
     (get-l op type table))
 
