@@ -103,7 +103,7 @@
 
 ;3.23
 (define (make-deque)
-    (cons `() `(() ())))
+    (cons `() `()))
 
 (define (empty-deque? deque)
     (null? (car deque)))
@@ -114,44 +114,74 @@
 
 (define (rear-deque deque)
     (if (empty-deque? deque) (error `rear-deque "empty deque!!!")
-        (car (cdr deque))))
+        (cadr (cdr deque))))
 
 (define (front-insert-deque! deque item)
     (if (empty-deque? deque)
-        (let ((new-pair (cons item `())))
-                (set-car! deque new-pair)
-                (set-cdr! deque new-pair)
+        (let ((front (list `() item `())))
+                (set-car! deque front)
+                (set-cdr! deque front)
                 deque)
-        (let ((front (cons item (car deque))))
+        (let ((front (list `() item (car deque))))
                 (set-car! deque front)
                 deque)))
 
 (define (rear-insert-deque! deque item)
-    (let ((new-pair (cons item `())))
-        (cond ((empty-deque? deque)
-                (set-car! deque new-pair)
-                (set-cdr! deque new-pair)
-                deque)
-            (else 
-                (let ((rear (cdr deque)))
-                    (set-cdr! rear new-pair)
-                    (set-cdr! deque new-pair)
-                    deque)))))
+    (if (empty-deque? deque)
+        (let ((rear (list `() item `())))
+            (set-car! deque rear)
+            (set-cdr! deque rear)
+            deque)
+        (let ((rear (list (cdr deque) item `()))
+	      (old (cdr deque)))
+            (set-cdr! (cddr deque) rear)
+	    (set-cdr! deque rear)
+            deque)))
+
+(define (front-delete-deque! deque)
+    (cond ((empty-deque? deque) (error `front-delete-deque! "cannot delete empty deque"))
+        (else
+            (let ((front (caddr (car deque))))
+                (set-car! deque front)
+                deque))))
+                
+(define (rear-delete-deque! deque)
+    (cond ((empty-deque? deque) (error `rear-delete-deque! "cannot delete empty deque"))
+        (else
+            (let ((rear (car (cdr deque))))
+                (set-cdr! deque rear)
+                deque))))
+                
+(define (print-deque deque)
+    (trace-define (print-it front)
+        (cond ((null? front ) (display ""))
+            (display (cadr front))
+            (display " ")
+            (print-it (caddr front))))
+    (let ((front (car deque)))
+        (display "( ")
+        (print-it front)
+        (display ")")
+        (newline)))
 
 (define d1 (make-deque))
-(print-queue d1)
+(print-deque d1)
 (front-insert-deque! d1 `a)
-(print-queue d1)
+(print-deque d1)
 (front-insert-deque! d1 `b)
-(print-queue d1)
+(print-deque d1)
 (rear-insert-deque! d1 `c)
-(print-queue d1)
-(front-insert-deque! d1 `b)
-(print-queue d1)
+(print-deque d1)
+(front-insert-deque! d1 `d)
+(print-deque d1)
 (front-insert-deque! d1 `e)
-(print-queue d1)
+(print-deque d1)
 (rear-insert-deque! d1 `f)
-(print-queue d1)
+(print-deque d1)
+(front-delete-deque! d1)
+(print-deque d1)
+(rear-delete-deque! d1)
+(print-deque d1)
 
 
 
@@ -161,4 +191,4 @@
 
 
 
-
+  
