@@ -134,7 +134,7 @@
             deque)
         (let ((rear (list (cdr deque) item `()))
 	      (old (cdr deque)))
-            (set-cdr! (cddr old) rear)
+            (set-car! (cddr old) rear)
 	    (set-cdr! deque rear)
             deque)))
 
@@ -173,11 +173,8 @@
 (print-deque d1)
 (rear-insert-deque! d1 `c)
 (print-deque d1)
-
-
-
-
-
-
-
+(front-delete-deque! d1)
+(print-deque d1)
+(rear-delete-deque! d1)
+(print-deque d1)
   
