@@ -134,7 +134,7 @@
             deque)
         (let ((rear (list (cdr deque) item `()))
 	      (old (cdr deque)))
-            (set-cdr! (cddr deque) rear)
+            (set-cdr! (cddr old) rear)
 	    (set-cdr! deque rear)
             deque)))
 
@@ -153,11 +153,12 @@
                 deque))))
                 
 (define (print-deque deque)
-    (trace-define (print-it front)
+    (define (print-it front)
         (cond ((null? front ) (display ""))
-            (display (cadr front))
-            (display " ")
-            (print-it (caddr front))))
+            (else
+	        (display (cadr front))
+                (display " ")
+                (print-it (caddr front)))))
     (let ((front (car deque)))
         (display "( ")
         (print-it front)
@@ -172,18 +173,6 @@
 (print-deque d1)
 (rear-insert-deque! d1 `c)
 (print-deque d1)
-(front-insert-deque! d1 `d)
-(print-deque d1)
-(front-insert-deque! d1 `e)
-(print-deque d1)
-(rear-insert-deque! d1 `f)
-(print-deque d1)
-(front-delete-deque! d1)
-(print-deque d1)
-(rear-delete-deque! d1)
-(print-deque d1)
-
-
 
 
 
