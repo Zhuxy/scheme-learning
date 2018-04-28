@@ -44,7 +44,7 @@
                 (display " ")
                 (print-it (cdr front)))))
     (let ((front (front-prt queue)))
-        (display "( ")
+        (display "queue: ( ")
         (print-it front)
         (display ")")
         (newline)))
@@ -122,7 +122,9 @@
                 (set-car! deque front)
                 (set-cdr! deque front)
                 deque)
-        (let ((front (list `() item (car deque))))
+        (let* ((old-front (car deque))
+                (front (list `() item old-front)))
+                (set-car! old-front front)
                 (set-car! deque front)
                 deque)))
 
@@ -134,7 +136,7 @@
             deque)
         (let ((rear (list (cdr deque) item `()))
 	      (old (cdr deque)))
-            (set-car! (cddr old) rear)
+            (set-cdr! (cdr old) (cons rear `()))
 	    (set-cdr! deque rear)
             deque)))
 
@@ -148,7 +150,9 @@
 (define (rear-delete-deque! deque)
     (cond ((empty-deque? deque) (error `rear-delete-deque! "cannot delete empty deque"))
         (else
-            (let ((rear (car (cdr deque))))
+            (let* ((old-rear (cdr deque))
+                    (rear (car old-rear)))
+                (set-cdr! (cdr rear) `())
                 (set-cdr! deque rear)
                 deque))))
                 
@@ -160,21 +164,17 @@
                 (display " ")
                 (print-it (caddr front)))))
     (let ((front (car deque)))
-        (display "( ")
+        (display "deque: ( ")
         (print-it front)
         (display ")")
         (newline)))
 
-(define d1 (make-deque))
-(print-deque d1)
-(front-insert-deque! d1 `a)
-(print-deque d1)
-(front-insert-deque! d1 `b)
-(print-deque d1)
-(rear-insert-deque! d1 `c)
-(print-deque d1)
-(front-delete-deque! d1)
-(print-deque d1)
-(rear-delete-deque! d1)
-(print-deque d1)
-  
+(define d1 (make-deque))(print-deque d1)
+
+(front-insert-deque! d1 `a)(print-deque d1)
+
+(front-insert-deque! d1 `b)(print-deque d1)
+
+(front-delete-deque! d1)(print-deque d1)
+
+(front-delete-deque! d1)(print-deque d1)
