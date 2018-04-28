@@ -1,6 +1,42 @@
 (library-directories "..")
 (import (modules))
 
+
+(define (make-wire)
+    (let ((signal-value 0) (action-procedures `()))
+        (define (set-my-signal! new-value)
+            (if (not (= signal-value new-value))
+                (begin
+                    (set! signal-value new-value)
+                    (call-each action-procedures))
+                `done))
+        (define (accept-action-procedure! proc)
+            (set! action-procedures (cons proc action-procedures))
+            (proc))
+        (define (dispatch m)
+            (cond 
+                ((eq? m `get-signal) signal-value)
+                ((eq? m `set-signal) set-my-signal!)
+                ((eq? m `add-action!) accept-action-procedure!)
+                (else (error `make-wire "Unknow operation" m))))
+        dispatch))
+        
+(define (call-each list)
+    (cond
+        ((null? list) `done)
+        (else
+            ((car list))
+            (call-each (cdr list)))))
+            
+(define (get-signal wire)
+    (wire `get-signal))
+    
+(define (set-signal! wire)
+    (wire `set-signal!))
+    
+(define (add-action! wire action-procedure)
+    ((wire `add-action!) aciton-procedure))
+
 (define (inverter input output)
     (define (invert-input)
         (let ((new-value  (logical-not (get-signal input))))
@@ -14,10 +50,21 @@
             ((= s 1) 0)
     (else (error `logical-not "Invalid signal" 8))))
 
-;3.28
 (define (logical-or a1 a2)
-    (if (and (= a1 1) (= a2 1)) 1 0))
+    (if (and (= a1 0) (= a2 0)) 0 1))
 
+(define (logical-and a1 a2)
+    (if (and (= a1 1) (= a2 1)) 1 0))
+    
+(define (and-gate a1 a2 output)
+    (define (and-gate-action)
+        (let ((value (logical-and (get-signal a1) (get-signal a2))))
+            (after-delay and-gate-delay
+                (lambda () (set-signal! output value)))))
+    (add-action! a1 and-gate-action)
+    (add-action! a2 and-gate-action))    
+
+;3.28
 (define (or-gate a1 a2 output)
     (define (or-gate-action)
         (let ((value (logical-or (get-signal a1) (get-signal a2))))
