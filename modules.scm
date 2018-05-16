@@ -1,5 +1,5 @@
 (library (modules)
-	(export displayn)
+	(export displayn square)
 
 	(import (rnrs))
 
@@ -9,4 +9,6 @@
 	            (display q)
 	            (display s)
 	            (newline))))
+
+	(define (square x) (* x x))
 )

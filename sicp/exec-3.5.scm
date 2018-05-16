@@ -53,13 +53,12 @@
     )
 )
 
-(displayn "estimate-integral: " (estimate-integral 0 100 0 100))
+(displayn "estimate-integral: " (estimate-integral 0 1000 0 1000))
 
 (define (random-init) (random-in-range 0 100))
 
-;(define (random-update x)
-;    (
-;    ))
+(define (random-update x)
+    (remainder (+ (* 13 x) 5) 24))
 
 ;3.6
 (define (rand)
@@ -72,7 +71,7 @@
                     ((equal? m `reset)
                         (lambda (val)
                             (set! x val)))
-                (else (error "wrong command"))))))
+                (else (error `rand "wrong command"))))))
 
 
 
