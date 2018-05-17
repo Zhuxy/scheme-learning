@@ -7,6 +7,7 @@
         ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
+        ((let? exp) (eval (let->combination exp) env))
         ((if? exp) (eval-if exp env))
         ((and? exp) (eval-and (and-seqs exp) env))
         ((or? exp) (eval-or (or-seqs exp) env))
@@ -200,6 +201,7 @@
         ((true? (eval (first-exp seqs) env)) #t)
         (else (eval-or (rest-exps seqs) env))))
 
+;4.4
 
 ;and->if
 ;(and predicate1 predicate2 predicate3 ...)
@@ -239,6 +241,75 @@
 
 (displayn "(or->if `(or (> 1 2) (< 3 4))): " (or->if `(or (> 1 2) (< 3 4))))
 
+;4.5
+;(cond (predicate1 body1 body2 ...)
+;    (predicate2 => procedure)
+;    (predicate3 body3 body4 ...)
+;    (else body5 body6 ...))
+
+;(if predicate1 (begin body1 body2)
+;    (let ((result predicate2))
+;        (if (true? result) (apply procedure result)
+;            (if (predicate3) (begin body3 body4)
+;                (being body5 body6)))))
 
 
+
+(define (expand-clauses clauses)
+    (if (null? clauses) #f
+        (let ((first (car clauses))
+                (rest (cdr clauses)))
+            (if (cond-else-clause? first)
+                (if (null? rest)
+                    (sequence->exp (cond-actions first))
+                    (error `cond->if "ELSE clause isn`t last -- COND->IF"))
+                (if (cond-recipient-clause? first)
+                    ;不考虑副作用的情况下, 执行两次preidiate部分
+                    ;(expand-cond-recipient-clause (cond-predicate first) (cond-recipient first))
+                    (make-if (cond-predicate first)
+                        (list (sequence->exp (cond-recipient first)) (cond-predicate))
+                        (expand-clauses rest))
+                    (make-if (cond-predicate first)
+                        (sequence->exp (cond-actions first))
+                        (expand-clauses rest)))))))
+
+(define (cond-recipient-clause? clause)
+    (eq? (first-exp (cond-actions clause)) `=>))
+
+(define (cond-recipient clause)
+    (first-exp (rest-exps (cond-actions clause))))
+
+;(display (cond-recipient `((> 1 2) => caard)))
+
+
+;4.6
+;(let ((var1 exp1) (var2 exp2) ...)
+;    body)
+;->
+;((lambda (var1 var2 ...) body) exp1 exp2 ...)
+
+(define (let? exp) (tagged-list? exp `let))
+
+(define (let->combination exp)
+    (cons (make-lambda (let-variables exp) (let-body exp)) (let-exps exp)))
+
+(define (let-variables exp)
+    (let ((var-definitions (cadr exp)))
+        (define (var-it list)
+            (if (null? list) `() (cons (caar list) (var-it (cdr list)))))
+        (var-it var-definitions)))
+
+;(display (let-variables `(let ((v1 e1) (v2 e2)) body)))
+
+(define (let-exps exp)
+    (let ((var-definitions (cadr exp)))
+        (define (exp-it list)
+            (if (null? list) `() (cons (cadar list) (exp-it (cdr list)))))
+        (exp-it var-definitions)))
+
+;(display (let-exps `(let ((v1 e1) (v2 e2)) body)))
+
+(define (let-body exp) (cddr exp))
+
+(displayn "let->combination: " (let->combination `(let ((var1 exp1) (var2 exp2)) body1 body2)))
 
