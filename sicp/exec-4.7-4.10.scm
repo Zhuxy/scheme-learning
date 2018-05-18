@@ -3,7 +3,7 @@
 
 (define (eval exp env)
     (cond ((self-evaluating? exp) exp)
-        ((variable? exp  (symbol? expe)xp) (lookup-variable-value exp env))
+        ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
@@ -230,7 +230,9 @@
 (define (let? exp) (tagged-list? exp `let))
 
 (define (let->combination exp)
-    (cons (make-lambda (let-variables exp) (let-body exp)) (let-exps exp)))
+    (if (symbol? (cadr exp))
+        (expand-named-let exp)
+        (cons (make-lambda (let-variables exp) (let-body exp)) (let-exps exp))))
 
 (define (let-variables exp)
     (let ((var-definitions (cadr exp)))
@@ -273,7 +275,61 @@
 (displayn "let*->nested-lets: " (let*->nested-lets `(let* ((var1 exp1) (var2 (+ var1 1)) (var3 (+ var2 1))) (proc1 var1 var2) (proc2 var1 var2) (proc3 var1 var2 var3))))
 
 
+;4.8
+;(let proc ((var1 exp1) (var2 exp2)) body)
+;->
+;(begin
+;    (define proc (lambda (var1 var2) body))
+;    (proc exp1 exp2))
+
+(define (expand-named-let exp)
+    (define var (cadr exp))
+    (define (let-variables exp)
+        (let ((var-definitions (caddr exp)))
+            (define (var-it list)
+                (if (null? list) `() (cons (caar list) (var-it (cdr list)))))
+            (var-it var-definitions)))
+    (define (let-exps exp)
+        (let ((var-definitions (caddr exp)))
+            (define (exp-it list)
+                (if (null? list) `() (cons (cadar list) (exp-it (cdr list)))))
+            (exp-it var-definitions)))
+    (define (let-body exp) (cdddr exp))
+    (let ((def (list `define var (make-lambda (let-variables exp) (let-body exp))))
+        (proc (cons var (let-exps exp))))
+        (sequence->exp (list def proc))))
+
+;(define (fib n) (let fib-iter ((a 1) (b 0) (count n)) (if (= count 0) b (fib-iter (+ a b) a (- count 1)))))
+
+(displayn "expand-named-let: " (let->combination `(let fib-iter ((a 1) (b 0) (count n)) (if (= count 0) b (fib-iter (+ a b) a (- count 1))))))
+
+;(begin 
+;    (define fib-iter 
+;        (lambda (a b count) 
+;            (if (= count 0) b 
+;                (fib-iter (+ a b) a (- count 1)))))
+;    (fib-iter 1 0 n))
+
+
+;4.9
+;(do (body1 body2 ...) while predicate)
+;->
+;(let ()
+;    (define anony
+;        (lambda ()
+;            body1
+;            body2
+;            (if predicate (anony) `done))))
+
+;(for ((var 1) (< var 10) (+ var 1)) body)
+
+;(while predicate do body)
+
+;(do (body1 body2) until predicate)
 
 
 
+;4.10
+;assignment
+;(var <= exp)
 
