@@ -12,6 +12,7 @@
         ((if? exp) (eval-if exp env))
         ((and? exp) (eval-and (and-seqs exp) env))
         ((or? exp) (eval-or (or-seqs exp) env))
+        ((make-unbound? exp) (eval-make-unbound (make-unbound-var exp) env))
         ((lambda? exp)
             (make-procedure (lambda-parameters exp)
                 (lambda-body exp)
@@ -341,3 +342,45 @@
 
 (define-variable! `c1 `35 env)
 (displayn "env after define-variable: " env)
+
+(add-binding-to-frame! `x 99 (first-frame env))
+(displayn "env after add-binding-to-frame: " env)
+
+;4.13
+;(define (f x)
+;    (define y 1)
+;    (set! x (+ x y))
+;    (make-unbound! y)
+;    x)
+
+(define (make-unbound? exp) (tagged-list exp `make-unbound!))
+
+(define (make-unbound-var exp) (cadr exp))
+
+;frame: ((x) () ())
+;set-car (cadr frame)
+;set-cde (cddr frame)
+;frame: ((x))
+;set-car `()
+;frame:(() (x) ())
+
+(define (eval-make-unbound var env)
+    (define (eval-it var rest)
+        (cond ((null? rest) `not-found)
+            ((= (length rest) 1) (set-car! rest `()))
+            ((eq? var (caar rest))
+                (set-car! rest (cadr rest))
+                (set-cdr! rest (cddr rest)))
+            (else (eval-it var (cdr rest)))))
+    (eval-it var (first-frame env)))
+
+(eval-make-unbound `x env)
+(displayn "env after make-unbound x: " env)
+(eval-make-unbound `a env)
+(displayn "env after make-unbound a: " env)
+(eval-make-unbound `c env)
+(displayn "env after make-unbound c: " env)
+
+
+
+
