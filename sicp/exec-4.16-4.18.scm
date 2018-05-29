@@ -423,7 +423,11 @@
         (cond 
             ((definition? exp)
                 (set! var-defs (cons (list (definition-variable exp) (list `quote `*unassigned*)) var-defs))
-                (set-car! exp `set!) 
+                (set-car! exp `set!)
+                (if (not (symbol? (cadr exp)))
+                    (set-cdr! exp
+                        (list (caadr exp)
+                            (make-lambda (cdadr exp) (cddr exp)))))
                 exp)
             (else exp)))
     (define new-body (map trans-define body))
@@ -431,15 +435,16 @@
         (list (make-let var-defs new-body))
         body))
 
-;(define body `((define a 1) (define b (+ 1 2)) (define c (lambda (x) (display x)))))
-;(displayn "scan-out-defines: " (scan-out-defines body))
+(define body `((define a 1) (define b (+ 1 2)) (define (c x) (display x))))
+(displayn "scan-out-defines: " (scan-out-defines body))
 
 
-(eval `(define a (+ 1 2)) the-global-environment)
-(eval `(define f (lambda (x) (display x))) the-global-environment)
-(eval `(define h (lambda (x) (define y 5) (if (< x y) (display (quote a)) (display (quote b))))) the-global-environment)
-(eval `(f a) the-global-environment)
-(eval `(h a) the-global-environment)
+;(eval `(define a (+ 1 2)) the-global-environment)
+;(eval `(define f (lambda (x) (display x))) the-global-environment)
+;(eval `(define (q x) (display x)) the-global-environment)
+;(eval `(define h (lambda (x) (define y 5) (if (< x y) (display (quote a)) (display (quote b))))) the-global-environment)
+;(eval `(f a) the-global-environment)
+;(eval `(h a) the-global-environment)
 
 ;(eval `(let ((x 1)) (display x) (display x)) the-global-environment)
 
