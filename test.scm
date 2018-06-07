@@ -139,3 +139,19 @@
 (define (test a . others)
     (display others))
 (test `1 `2 `3)
+
+
+;merge-map list1 lsit2 lambda(v1 v2)
+
+(define (merge-map f list1 list2)
+    (cond ((not (= (length list1) (length list2))) (error `merge-map "lists' length not equal"))
+        ((null? list1) `())
+        (else 
+            (cons (f (car list1) (car list2))
+                (merge-map f (cdr list1) (cdr list2))))))
+
+(display (merge-map + `(1 2 3) `(4 5 6)))
+
+
+
+

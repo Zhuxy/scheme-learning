@@ -213,6 +213,12 @@
         (expand-named-let exp)
         (cons (make-lambda (let-variables exp) (let-body exp)) (let-exps exp))))
 
+(define (expand-named-let exp)
+    (define var (cadr exp))
+    (let ((def (list `define var (make-lambda (let-variables exp) (let-body exp))))
+        (proc (cons var (let-exps exp))))
+        (sequence->exp (list def proc))))
+
 (define (let-variables exp)
     (let ((var-definitions (cadr exp)))
         (define (var-it list)
@@ -458,23 +464,6 @@
 ;如果把内部的lambda和外层的lambda合并?是否就可以避免多一个框架?
 
 ;4.18 待定
-
-;4.19
-;(let ((a 1))
-;    (define (f x)
-;        (define b (+ a x))
-;        (define a 5)
-;        (+ a b))
-;    (f 10))
-;观点1: 变量以出现的顺序定义并绑定, 定义b时内层的a未定义, 所以取外层环境的值
-;观点2: 在一个作用域内两个变量同时定义, 但绑定值的顺序有先后, 故定义b的时候a还未初始化, javascript的机制相同
-;观点3: 在同一个作用域里变量同时绑定, 定义b的时候可以取到后定义的a的值
-
-;第三种观点的实现方式:
-;先变量定义提前, 以此执行表达式(语句), 若表达式取值时判断表达式里的变量是否被初始化, 如果没有则挂起当前语句, 继续往下执行?
-;考虑表达式(语句)间互相应用的问题
-
-
 
 
 

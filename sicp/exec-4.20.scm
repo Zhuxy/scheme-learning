@@ -11,6 +11,7 @@
         ((definition? exp) (eval-definition exp env))
         ((let? exp) (eval (let->combination exp) env))
         ((let*? exp) (eval (let*->nested-lets exp) env))
+        ((letrec? exp) (eval (letrec->let exp) env))
         ((if? exp) (eval-if exp env))
         ((and? exp) (eval-and (and-seqs exp) env))
         ((or? exp) (eval-or (or-seqs exp) env))
@@ -459,28 +460,53 @@
         (list (make-let var-defs new-body))
         body))
 
+;4.20(a)
+;(letrec ((var1 exp1) (var2 exp2))
+;    body1
+;    body2)
 
-;4.19
-;(let ((a 1))
-;    (define (f x)
-;        (define b (+ a x))
-;        (define a 5)
-;        (+ a b))
-;    (f 10))
-;观点1: 变量以出现的顺序定义并绑定, 定义b时内层的a未定义, 所以取外层环境的值
-;观点2: 在一个作用域内两个变量同时定义, 但绑定值的顺序有先后, 故定义b的时候a还未初始化, javascript的机制相同
-;观点3: 在同一个作用域里变量同时绑定, 定义b的时候可以取到后定义的a的值
-
-;第三种观点的实现方式:
-;把define定义为延时求值
+;(let ((var1 *unassigned) (var2 *unassigned))
+;    (let ((var1_temp exp1) (var2_temp exp2))
+;        (set! var1 var1_temp)
+;        (set! var2 var2_temp)
+;        body1
+;        body2))
 
 
-(eval
-    `(let ((a 1))
-        (define (f x)
-            (define b (+ a x))
-            (define a 5)
-            (display (+ a b)))
-        (f 10))
-    the-global-environment)
+(define (letrec? exp) (tagged-list exp `letrec))
 
+(define (letrec->let exp)
+    (define vars (map car (cadr exp)))
+    (define var-definitions (map cadr (cadr exp)))
+    (define var-definitions-unassigned (map (lambda (v) (list v `*unassigned)) vars))
+    (define vars-temp (map (lambda (v) (gensym (string-append (symbol->string v) "-temp"))) vars))
+    (define (merge-map f list1 list2)
+        (if (null? list1) `()
+            (cons (f (car list1) (car list2)) (merge-map f (cdr list1) (cdr list2)))))
+    (define var-temp-definitions 
+        (merge-map
+            list
+            vars-temp
+            (map cadr (cadr exp))))
+    (define set-causes 
+        (merge-map
+            (lambda (v1 v2) (list `set! v1 v2))
+            vars vars-temp))
+    (make-let
+        var-definitions-unassigned
+        (list (make-let
+            var-temp-definitions
+            (append
+                set-causes
+                (cddr exp))
+        ))))
+
+(displayn "letrec->let: " (letrec->let
+    `(letrec (
+        (even? (lambda (n) (if (= n 0) #t (odd? (- n 1)))))
+        (odd? (lambda (n) (if (= n 0) #f (even? (- n 1))))))
+        (even? x))
+))
+
+
+;4.20(b)
