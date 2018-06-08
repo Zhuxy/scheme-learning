@@ -40,8 +40,28 @@ const C =
 	(Y => 
 		func => 
 			x => func(Y(Y)(func))(x))
-	(Y => func => x => func(Y(Y)(func))(x));
+	(Y => 
+		func => 
+			x => func(Y(Y)(func))(x));
 
+const F3 = C(self =>
+	x => x > 1 ? self(x - 1) * x : 1
+);
+
+console.log(F3(10));
+
+console.log(
+(Y => 
+	func => 
+		x => func(Y(Y)(func))(x))
+(Y => 
+	func => 
+		x => func(Y(Y)(func))(x))
+(self =>
+	x => x > 1 ? self(x - 1) * x : 1
+)
+(10)
+);
 
 
 
