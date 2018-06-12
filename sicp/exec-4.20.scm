@@ -473,7 +473,7 @@
 ;        body2))
 
 
-(define (letrec? exp) (tagged-list exp `letrec))
+(define (letrec? exp) (tagged-list? exp `letrec))
 
 (define (letrec->let exp)
     (define vars (map car (cadr exp)))

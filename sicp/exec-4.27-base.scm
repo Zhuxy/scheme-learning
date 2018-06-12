@@ -1,29 +1,30 @@
 
-;(define (eval exp env)
-;    (cond 
-;        ;((delayed-object? exp) (force-eval exp))
-;        ((self-evaluating? exp) exp)
-;        ((variable? exp) (lookup-variable-value exp env))
-;        ((quoted? exp) (text-of-quotation exp))
-;        ((assignment? exp) (eval-assignment exp env))
-;        ((definition? exp) (eval-definition exp env))
-;        ((let? exp) (eval (let->combination exp) env))
-;        ((let*? exp) (eval (let*->nested-lets exp) env))
-;        ((letrec? exp) (eval (letrec->let exp) env))
-;        ((if? exp) (eval-if exp env))
-;        ((and? exp) (eval-and (and-seqs exp) env))
-;        ((or? exp) (eval-or (or-seqs exp) env))
-;        ((make-unbound? exp) (eval-make-unbound (make-unbound-var exp) env))
-;        ((lambda? exp)
-;            (make-procedure (lambda-parameters exp)
-;                (lambda-body exp)
-;                env))
-;        ((begin? exp) (eval-sequence (begin-actions exp) env))
-;        ((cond? exp) (eval (cond->if exp) env))
-;        ((application? exp)
-;            (m-apply (eval (operator exp) env)
-;                (list-of-values (operands exp) env)))
-;    (else (error `exp "Unknown expression type -- EVAL" exp))))
+(define (eval exp env)
+    (cond 
+        ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((let? exp) (eval (let->combination exp) env))
+        ((let*? exp) (eval (let*->nested-lets exp) env))
+        ((letrec? exp) (eval (letrec->let exp) env))
+        ((if? exp) (eval-if exp env))
+        ((and? exp) (eval-and (and-seqs exp) env))
+        ((or? exp) (eval-or (or-seqs exp) env))
+        ((make-unbound? exp) (eval-make-unbound (make-unbound-var exp) env))
+        ((lambda? exp)
+            (make-procedure (lambda-parameters exp)
+                (lambda-body exp)
+                env))
+        ((begin? exp) (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        ((application? exp)
+            (m-apply 
+              (actual-value (operator exp) env)
+              (operands exp)
+              env))
+    (else (error `exp "Unknown expression type -- EVAL" exp))))
 
 
 (define (delayed-eval exp)
@@ -32,12 +33,14 @@
 (define (delayed-object? object) (tagged-list? object `delayed))
 
 (define (force-eval delayed-object env) 
-  ;(if (delayed-object? delayed-object)
     (eval (cdr delayed-object) env))
-    ;(error `force-eval "not a delayed eval object" delayed-object)))
+
+(define (true? x) (not (eq? x #f)))
+
+(define (false? x) (eq? x #f))
 
 (define (eval-if exp env)
-  (if (true? (eval (if-predicate exp) env))
+  (if (true? (actual-value (if-predicate exp) env))
     (eval (if-consequent exp) env)
     (eval (if-alternative exp) env)))
 
@@ -214,17 +217,53 @@
         (let->combination (make-let (list (car vars)) (list (let-it (cdr vars) body))))))
     (let-it var-defs body)))
 
-(define (m-apply procedure arguments)
-  (cond ((primitive-procedure? procedure)
-      (apply-primitive-procedure procedure arguments))
+(define (actual-value exp env)
+  (force-it (eval exp env)))
+
+(define (force-it obj)
+  (cond ((trunk? obj)
+          (let ((result (actual-value (trunk-exp obj) (trunk-env obj))))
+            (set-car! obj `evaluated-trunk)
+            (set-car! (cdr obj) result)
+            (set-cdr! (cdr obj) `())
+            result))
+      ((evaluated-trunk? obj) (trunk-value obj))
+      (else obj)))
+
+(define (evaluated-trunk? obj) (tagged-list? obj `evaluated-trunk))
+
+(define (trunk-value evaluated-trunk) (cadr evaluated-trunk))
+
+(define (trunk? obj) (tagged-list? obj `trunk))
+
+(define (delay-it exp env) (list `trunk exp env))
+
+(define (trunk-exp trunk) (cadr trunk))
+
+(define (trunk-env trunk) (caddr trunk))
+
+(define (m-apply procedure arguments env)
+  (cond 
+    ((primitive-procedure? procedure)
+      (apply-primitive-procedure procedure (list-of-arg-values arguments env)))
     ((compound-procedure? procedure)
       (eval-sequence
         (procedure-body procedure)
         (extend-environment
           (procedure-parameters procedure)
-          arguments
+          (list-of-delayed-args arguments env)
           (procedure-environment procedure))))
     (else (error `apply "Unknown procedure type -- APPLY" exp))))
+
+(define (list-of-arg-values exps env)
+  (if (no-operands? exps) `()
+    (cons (actual-value (first-operand exps) env)
+      (list-of-arg-values (rest-operands exps) env))))
+
+(define (list-of-delayed-args exps env)
+  (if (no-operands? exps) `()
+    (cons (delay-it (first-operand exps) env)
+      (list-of-delayed-args (rest-operands exps) env))))
 
 (define (list-of-values exps env)
   (if (no-operands? exps)
@@ -278,7 +317,7 @@
 (define (make-procedure parameters body env)
   (list `procedure parameters body env))
 
-(define (compound-procedure? p) (tagged-list? p `procedure))
+(trace-define (compound-procedure? p) (tagged-list? p `procedure))
 
 (define (procedure-parameters p) (cadr p))
 
@@ -320,6 +359,7 @@
     (list `/ /)
     (list `< <)
     (list `> >)
+    (list `= =)
   )
 )
 
@@ -359,13 +399,13 @@
   (apply-in-underlying-scheme
     (primitive-implementation proc) args))
 
-(define input-prompt "::: M~Eval input: ")
-(define output-prompt "::: M-Eval value: ")
+(define input-prompt "::: L~Eval input: ")
+(define output-prompt "::: L-Eval value: ")
 
 (define (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
-    (let ((output (eval input the-global-environment)))
+    (let ((output (actual-value input the-global-environment)))
       (announce-output output-prompt)
       (user-print output)))
   (driver-loop))
@@ -458,19 +498,6 @@
     (list (make-let var-defs new-body))
     body))
 
-;4.20(a)
-;(letrec ((var1 exp1) (var2 exp2))
-;    body1
-;    body2)
-
-;(let ((var1 *unassigned) (var2 *unassigned))
-;    (let ((var1_temp exp1) (var2_temp exp2))
-;        (set! var1 var1_temp)
-;        (set! var2 var2_temp)
-;        body1
-;        body2))
-
-
 (define (letrec? exp) (tagged-list? exp `letrec))
 
 (define (letrec->let exp)
@@ -499,4 +526,22 @@
         (cddr exp))
     ))))
 
+
+;(eval `(define (try a b) (if (= a 0) 1 b)) the-global-environment)
+
+;(eval `(display (try 0 (/ 1 0))) the-global-environment)
+
+(eval `(define count 0) the-global-environment)
+(eval `(define (id x) (set! count (+ count 1)) (display count) x) the-global-environment)
+(eval `(define w (id (id 10))) the-global-environment)
+
+;(display the-global-environment)(newline)
+
+(eval `w the-global-environment)(newline)
+
+;(display the-global-environment)(newline)
+
+;(eval `w the-global-environment)(newline)
+
+;(display the-global-environment)(newline)
 

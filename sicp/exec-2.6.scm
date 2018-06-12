@@ -1,4 +1,4 @@
-;;;;;;; exec 2.6
+;;;;;;; exec 2.6 丘奇计数法
 
 (define zero
 	(lambda (f x) x))
