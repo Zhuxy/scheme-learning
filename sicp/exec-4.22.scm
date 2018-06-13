@@ -19,7 +19,7 @@
     ((begin? exp) (analyze-sequence (begin-actions exp)))
     ((cond? exp) (analyze (cond->if exp)))
     ((application? exp) (analyze-application exp))
-    (else `analyze (error "Unknown expression type 一- ANALYZE" exp))))
+    (else 'analyze (error "Unknown expression type 一- ANALYZE" exp))))
 
 (define (analyze-self-evaluating exp)
   (lambda (env) exp))
@@ -36,14 +36,14 @@
     (vproc (analyze (assignment-value exp))))
     (lambda (env)
       (set-variable-value! var (vproc env) env)
-      `ok)))
+      'ok)))
 
 (define (analyze-definition exp)
   (let ((var (definition-variable exp))
     (vproc (analyze (definition-value exp))))
     (lambda (env)
       (define-variable! var (vproc env) env)
-      `ok)))
+      'ok)))
 
 (define (analyze-if exp)
   (let ((pproc (analyze (if-predicate exp)))
@@ -70,7 +70,7 @@
         (cdr rest-procs))))
   (let ((procs (map analyze exps)))
     (if (null? procs)
-      (error `analyze-sequence "Empty sequence -- ANALYZE")
+      (error 'analyze-sequence "Empty sequence -- ANALYZE")
       (loop (car procs) (cdr procs)))))
 
 (define (analyze-application exp)
@@ -89,14 +89,14 @@
             (extend-environment (procedure-parameters proc) 
                                 args
                                 (procedure-environment proc))))
-        (else (error `execute-application "Unknown procedure type" proc))))
+        (else (error 'execute-application "Unknown procedure type" proc))))
 
 
-(displayn "self-evaluating: " (eval `1 the-global-environment))
-(displayn "quoted: " (eval `(quote a) the-global-environment))
-(displayn "define variable: " (eval `(define a 1) the-global-environment))
-(displayn "variable assignment: " (eval `(set! a 2) the-global-environment))
-(displayn "if: " (eval `(if (< a 3) (quote good) (quote bad)) the-global-environment))
+(displayn "self-evaluating: " (eval '1 the-global-environment))
+(displayn "quoted: " (eval '(quote a) the-global-environment))
+(displayn "define variable: " (eval '(define a 1) the-global-environment))
+(displayn "variable assignment: " (eval '(set! a 2) the-global-environment))
+(displayn "if: " (eval '(if (< a 3) (quote good) (quote bad)) the-global-environment))
 
 
 ;4.22
@@ -113,7 +113,7 @@
           (fproc env)
           (map (lambda (aproc) (aproc env)) aprocs)))))
 
-(displayn "let: " (eval `(let ((a 1) (b 2)) (+ a b)) the-global-environment))
+(displayn "let: " (eval '(let ((a 1) (b 2)) (+ a b)) the-global-environment))
 
 
 

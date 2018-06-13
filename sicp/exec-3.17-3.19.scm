@@ -3,7 +3,7 @@
 
 ;3.17
 (define (count-pairs lst)
-    (define counted `())
+    (define counted '())
     (define (not-counted x counted)
         (cond ((null? counted) #t)
             ((eq? x (car counted)) #f)
@@ -17,7 +17,7 @@
             (else cnt)))
     (count-pairs-it lst 0))
 
-(define x (cons `a `b))
+(define x (cons 'a 'b))
 (define y (cons x x))
 
 (displayn "count-pairs: " (count-pairs (list y y y)))
@@ -33,7 +33,7 @@
     x)
 
 (define (check-cycle lst)
-    (define counted `())
+    (define counted '())
     (define (not-counted x counted)
         (cond ((null? counted) #t)
             ((eq? x (car counted)) #f)
@@ -47,8 +47,8 @@
             (else #t)))
     (check-cycle-it lst))
 
-(displayn "check-cycle: " (check-cycle (make-cycle `(a b c d e f g))))
-(displayn "check-cycle: " (check-cycle `(a b c d a)))
+(displayn "check-cycle: " (check-cycle (make-cycle '(a b c d e f g))))
+(displayn "check-cycle: " (check-cycle '(a b c d a)))
 
 ;3.19
 

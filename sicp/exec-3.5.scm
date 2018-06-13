@@ -64,14 +64,14 @@
 (define (rand)
     (let ((x (random-init)))
         (lambda (m)
-            (cond ((equal? m `generate) 
+            (cond ((equal? m 'generate) 
                         (begin
                             (set! x (random-update x))
                             x))
-                    ((equal? m `reset)
+                    ((equal? m 'reset)
                         (lambda (val)
                             (set! x val)))
-                (else (error `rand "wrong command"))))))
+                (else (error 'rand "wrong command"))))))
 
 
 

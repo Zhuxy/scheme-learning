@@ -15,7 +15,7 @@
 	(list entry left-branch right-branch))
 
 (define  (tree->list-1 tree)
-	(if (null? tree) `()
+	(if (null? tree) '()
 		(append (tree->list-1 (left-branch tree))
 			(cons (entry tree) (tree->list-1 (right-branch tree))))))
 
@@ -27,7 +27,7 @@
 					(copy-to-list (right-branch tree) result-list)))))
 	(copy-to-list tree ' ()))
 
-(define tree `(7 (3 (1 () ()) (5 () ())) (9 () (11 () ()))))
+(define tree '(7 (3 (1 () ()) (5 () ())) (9 () (11 () ()))))
 
 (displayn "tree->list-1: " (tree->list-1 tree))
 (displayn "tree->list-2: " (tree->list-1 tree))
@@ -38,7 +38,7 @@
 	(car (partial-tree elements (length elements))))
 
 (define (partial-tree elts n)
-	(if (= n 0) (cons `() elts)
+	(if (= n 0) (cons '() elts)
 		(let ((left-size (quotient (- n 1) 2)))
 			(let ((left-result (partial-tree elts left-size)))
 				(let ((left-tree (car left-result))
@@ -50,7 +50,7 @@
 								(remaining-elts (cdr right-result)))
 							(cons (make-tree this-entry left-tree right-tree) remaining-elts))))))))
 
-(displayn "partial-tree: " (partial-tree `(4 5 6 7 8 9 10 11 12 13) 7))
+(displayn "partial-tree: " (partial-tree '(4 5 6 7 8 9 10 11 12 13) 7))
 
 ;2.65
 (define (union-list l1 l2) 
@@ -69,11 +69,11 @@
 				(list->tree all-list))))
 
 (displayn "union-set: " (union-set 
-	`(3 (1 () (2 () ())) (5 (4 () ()) (6 () ())))
-	`(10 (8 (7 () ()) (9 () ())) (12 (11 () ()) (13 () ())))))
+	'(3 (1 () (2 () ())) (5 (4 () ()) (6 () ())))
+	'(10 (8 (7 () ()) (9 () ())) (12 (11 () ()) (13 () ())))))
 
 (define (intersection-list set1 set2)
-	(if (or (null? set1) (null? set2)) `()
+	(if (or (null? set1) (null? set2)) '()
 		(let ((x1 (car set1)) (x2 (car set2)))
 			(cond ((= x1 x2) (cons x1 (intersection-list (cdr set1) (cdr set2))))
 				((< x1 x2) (intersection-list (cdr set1) set2))
@@ -85,8 +85,8 @@
 				(list->tree all-list))))
 
 (displayn "intersection-set: " (intersection-set 
-	`(3 (1 () (2 () ())) (5 (4 () ()) (6 () ())))
-	`(7 (5 (4 () ()) (6 () ())) (9 (8 () ()) (10 () ())))))
+	'(3 (1 () (2 () ())) (5 (4 () ()) (6 () ())))
+	'(7 (5 (4 () ()) (6 () ())) (9 (8 () ()) (10 () ())))))
 
 
 (trace-define (lookup given-key tree-of-records)

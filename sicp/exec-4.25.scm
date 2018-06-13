@@ -15,4 +15,4 @@
 	      (exception (lambda () exceptional-value)))
 	  (if condition (usual) (exception))))))
 
-(display (unless (> 5 1) (begin (display `a) `b) (begin (display `c) `d)))
+(display (unless (> 5 1) (begin (display 'a) 'b) (begin (display 'c) 'd)))

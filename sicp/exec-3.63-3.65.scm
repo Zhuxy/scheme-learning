@@ -3,7 +3,7 @@
 
 
 ;stream
-(define the-empty-stream `(()))
+(define the-empty-stream '(()))
 
 (define (stream-null? s) (equal? s the-empty-stream))
 
@@ -17,7 +17,7 @@
 			(stream-map proc (stream-cdr s)))))
 
 (define (stream-for-each proc s)
-	(if (stream-null? s) `done
+	(if (stream-null? s) 'done
 		(begin (proc (stream-car s))
 			(stream-for-each proc (stream-cdr s)))))
 
@@ -57,7 +57,7 @@
 ;(define (cons-stream a b) (cons a (delay b)))
 
 (define (stream-for-each proc s)
-	(if (stream-null? s) `done
+	(if (stream-null? s) 'done
 		(begin (proc (stream-car s))
 			(stream-for-each proc (stream-cdr s)))))
 
@@ -70,7 +70,7 @@
 					(set! n (+ n 1)) 
 					(if (< n 11) 
 						(begin (display x) (display " "))
-						(begin (display "...") (exit `done)))) s)))
+						(begin (display "...") (exit 'done)))) s)))
 		(newline)))
 
 (define (stream-enumerate-interval low high)

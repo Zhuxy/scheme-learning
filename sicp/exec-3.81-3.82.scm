@@ -2,7 +2,7 @@
 (import (modules))
 
 ;stream
-(define the-empty-stream `(()))
+(define the-empty-stream '(()))
 
 (define (stream-null? s) (equal? s the-empty-stream))
 
@@ -16,7 +16,7 @@
             (stream-map proc (stream-cdr s)))))
 
 (define (stream-for-each proc s)
-    (if (stream-null? s) `done
+    (if (stream-null? s) 'done
         (begin (proc (stream-car s))
             (stream-for-each proc (stream-cdr s)))))
 
@@ -56,7 +56,7 @@
 ;(define (cons-stream a b) (cons a (delay b)))
 
 (define (stream-for-each proc s)
-    (if (stream-null? s) `done
+    (if (stream-null? s) 'done
         (begin (proc (stream-car s))
             (stream-for-each proc (stream-cdr s)))))
 
@@ -69,7 +69,7 @@
                     (set! n (+ n 1)) 
                     (if (< n 11) 
                         (begin (display x) (display " "))
-                        (begin (display "...") (exit `done)))) s)))
+                        (begin (display "...") (exit 'done)))) s)))
         (newline)))
 
 (define (stream-enumerate-interval low high)
@@ -134,22 +134,22 @@
 
 ;(define (rand-numbers stream)
 ;    (lambda (m)
-;        (cond ((eq? m `generate)
+;        (cond ((eq? m 'generate)
 ;                ;取stream下一个?
 ;                )
-;            ((eq? m `reset)
+;            ((eq? m 'reset)
 ;                (lambda (val)
 ;                    (
 ;                        ;找到流里的第一个val, 抛弃前面的值
 ;                    )))
-;            (else (error `rand-numbers "wrong command!"))
+;            (else (error 'rand-numbers "wrong command!"))
 ;        )))
 
 
 ;(define s1 (rand-numbers random-number-stream-1))
-;(s1 `generate)
-;(define s2 ((s1 `reset) 123))
-;(s2 `generate)
+;(s1 'generate)
+;(define s2 ((s1 'reset) 123))
+;(s2 'generate)
 
 
 

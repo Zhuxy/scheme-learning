@@ -26,22 +26,22 @@
 (define (variable? exp) (symbol? exp))
 
 (define (quoted? exp)
-    (tagged-list? exp `quote))
+    (tagged-list? exp 'quote))
 
 (define (text-of-quotation exp) (cadr exp))
 
 ;(lambda (x y) (+ x y))
-(define (lambda? exp) (tagged-list? exp `lambda))
+(define (lambda? exp) (tagged-list? exp 'lambda))
 
 (define (lambda-parameters exp) (cadr exp))
 
 (define (lambda-body exp) (cddr exp))
 
 (define (make-lambda parameters body)
-    (cons `lambda (cons parameters body)))
+    (cons 'lambda (cons parameters body)))
 
 ;(if (> x 1) #t #f)
-(define (if? exp) (tagged-list? exp `if))
+(define (if? exp) (tagged-list? exp 'if))
 
 (define (if-predicate exp) (cadr exp))
 
@@ -51,10 +51,10 @@
     (if (null? (cdddr exp)) #f (cadddr exp)))
 
 (define (make-if predicate consequent alternative)
-    (list `if predicate consequent alternative))
+    (list 'if predicate consequent alternative))
 
 ;(begin body1 body1 ...)
-(define (begin? exp) (tagged-list? exp `begin))
+(define (begin? exp) (tagged-list? exp 'begin))
 
 (define (begin-actions exp) (cdr exp))
 
@@ -65,7 +65,7 @@
 
 (define (rest-exps seq) (cdr seq))
 
-(define (make-begin seq) (cons `begin seq))
+(define (make-begin seq) (cons 'begin seq))
 
 (define (sequence->exp seq)
     (cond ((null? seq) seq)
@@ -88,12 +88,12 @@
 ;(cond
 ;   (predicate body1 body2 body3 ...)
 ;   (else body1 body2 body3 ...))
-(define (cond? exp) (tagged-list? exp `cond))
+(define (cond? exp) (tagged-list? exp 'cond))
 
 (define (cond-clauses exp) (cdr exp))
 
 (define (cond-else-clause? clause)
-    (eq? (cond-predicate clause) `else))
+    (eq? (cond-predicate clause) 'else))
 
 (define (cond-predicate clause) (car clause))
 
@@ -103,20 +103,20 @@
     (expand-clauses (cond-clauses exp)))
 
 (define (expand-clauses clauses)
-    (if (null? clauses) `false
+    (if (null? clauses) 'false
         (let ((first (car clauses))
                 (rest (cdr clauses)))
             (if (cond-else-clause? first)
                 (if (null? rest)
                     (sequence->exp (cond-actions first))
-                    (error `cond->if "ELSE clause isn`t last -- COND->IF"))
+                    (error 'cond->if "ELSE clause isn't last -- COND->IF"))
                 (make-if (cond-predicate first)
                     (sequence->exp (cond-actions first))
                     (expand-clauses rest))))))
 
 ;4.4
 ;(and (predicate1 exp1) (predicate2 exp2) ...)
-(define (and? exp) (tagged-list? exp `and))
+(define (and? exp) (tagged-list? exp 'and))
 
 (define (and-seqs exp) (cdr exp))
 
@@ -126,17 +126,17 @@
         (else #f)))
 
 ;(or (predicate1 exp1) (predicate2 exp2) ...)
-(define (or? exp) (tagged-list? exp `or))
+(define (or? exp) (tagged-list? exp 'or))
 
 (define (or-seqs exp) (cdr exp))
 
 (define (eval-or seqs env)
-    (cond ((null? seqs) `false)
-        ((true? (eval (first-exp seqs) env)) `true)
+    (cond ((null? seqs) 'false)
+        ((true? (eval (first-exp seqs) env)) 'true)
         (else (eval-or (rest-exps seqs) env))))
 
 ;let
-(define (let? exp) (tagged-list? exp `let))
+(define (let? exp) (tagged-list? exp 'let))
 
 (define (let->combination exp)
     (if (symbol? (cadr exp))
@@ -146,14 +146,14 @@
 (define (let-variables exp)
     (let ((var-definitions (cadr exp)))
         (define (var-it list)
-            (if (null? list) `() (cons (caar list) (var-it (cdr list)))))
+            (if (null? list) '() (cons (caar list) (var-it (cdr list)))))
         (var-it var-definitions)))
 
 
 (define (let-exps exp)
     (let ((var-definitions (cadr exp)))
         (define (exp-it list)
-            (if (null? list) `() (cons (cadar list) (exp-it (cdr list)))))
+            (if (null? list) '() (cons (cadar list) (exp-it (cdr list)))))
         (exp-it var-definitions)))
 
 
@@ -161,10 +161,10 @@
 
 
 ;let*
-(define (let*? exp) (tagged-list? exp `let*))
+(define (let*? exp) (tagged-list? exp 'let*))
 
 (define (make-let var-defs body)
-    (cons `let (cons var-defs body)))
+    (cons 'let (cons var-defs body)))
 
 (define (let*->nested-lets exp)
     (let ((var-defs (cadr exp))
@@ -180,14 +180,14 @@
 ;(define (false? x) (eq? x #f))
 
 ;make-unbound!
-(define (make-unbound? exp) (tagged-list? exp `make-unbound!))
+(define (make-unbound? exp) (tagged-list? exp 'make-unbound!))
 
 (define (make-unbound-var exp) (cadr exp))
 
 (define (eval-make-unbound var env)
     (define (eval-it var rest)
-        (cond ((null? rest) `not-found)
-            ((= (length rest) 1) (set-car! rest `()))
+        (cond ((null? rest) 'not-found)
+            ((= (length rest) 1) (set-car! rest '()))
             ((eq? var (caar rest))
                 (set-car! rest (cadr rest))
                 (set-cdr! rest (cddr rest)))
@@ -196,30 +196,30 @@
 
 
 ;environment
-(define (primitive-procedure? proc) (tagged-list? proc `primitive))
+(define (primitive-procedure? proc) (tagged-list? proc 'primitive))
 
 (define (primitive-implementation proc) (cadr proc))
 
 (define primitive-procedures 
     (list 
-        (list `car car)
-        (list `cdr cdr)
-        (list `cons cons)
-        (list `null? null?)
-        (list `display display)
-        (list `+ +)
-        (list `- -)
-        (list `* *)
-        (list `/ /)
-        (list `< <)
-        (list `> >)
+        (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        (list 'display display)
+        (list '+ +)
+        (list '- -)
+        (list '* *)
+        (list '/ /)
+        (list '< <)
+        (list '> >)
     )
 )
 
 (define primitive-procedure-names (map car primitive-procedures))
 
 (define primitive-procedure-objects
-    (map (lambda (proc) (list `primitive (cadr proc)))
+    (map (lambda (proc) (list 'primitive (cadr proc)))
         primitive-procedures))
 
 ;env 4.11
@@ -229,14 +229,14 @@
 
 (define (first-frame env) (car env))
 
-(define the-empty-environment `())
+(define the-empty-environment '())
 
 (define (make-frame variables values) 
     (if (= (length variables) (length values))
-        (if (null? variables) `()
+        (if (null? variables) '()
             (cons (cons (car variables) (car values)) 
                 (make-frame (cdr variables) (cdr values))))
-        (error `make-frame "to many variables or values")))
+        (error 'make-frame "to many variables or values")))
 
 (define (add-binding-to-frame! var val frame)
     (set-cdr! frame (cons (cons var val) (cdr frame))))
@@ -244,7 +244,7 @@
 (define (extend-environment vars vals base-env)
     (if (= (length vars) (length vals))
         (cons (make-frame vars vals) base-env)
-        (error `extend-environment "to many variables or values")))
+        (error 'extend-environment "to many variables or values")))
 
 (define apply-in-underlying-scheme apply)
 
@@ -272,8 +272,8 @@
 (define (user-print object)
     (if (compound-procedure? object)
         (display 
-            (list `compound-procedure
+            (list 'compound-procedure
                 (procedure-parameters object)
                 (procedure-body object)
-                `<procedure-env>))
+                '<procedure-env>))
         (display object)))

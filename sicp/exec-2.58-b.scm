@@ -12,18 +12,18 @@
 
 (define (sum? e)
     (and (pair? e)
-        (eq? `+ (cadr e)) 
+        (eq? '+ (cadr e)) 
         (or (null? (cdddr e)) (sum? (cddr e)))))
     
-(displayn "sum?: " (sum? `(1 + 2)))
-(displayn "sum?: " (sum? `(1 + 2 + 3 + 4)))
+(displayn "sum?: " (sum? '(1 + 2)))
+(displayn "sum?: " (sum? '(1 + 2 + 3 + 4)))
 
 ;取被加数
 (define (addend e)
     (if (sum? e) (car e) #f))
 
-(displayn "addend: " (addend `(1 + 2)))
-(displayn "addend: " (addend `(1 + 2 + 3 + 4)))
+(displayn "addend: " (addend '(1 + 2)))
+(displayn "addend: " (addend '(1 + 2 + 3 + 4)))
 
 ;加数
 (define (augend e)
@@ -32,15 +32,15 @@
         ((sum? e) (cddr e))
         (else #f)))
 
-(displayn "augend: " (augend `(1 + 2)))
-(displayn "augend: " (augend `(1 + 2 + 3)))
-(displayn "augend: " (augend `(1 + 2 + 3 + 4)))
+(displayn "augend: " (augend '(1 + 2)))
+(displayn "augend: " (augend '(1 + 2 + 3)))
+(displayn "augend: " (augend '(1 + 2 + 3 + 4)))
 
 (define (add-it lst)
     (if (null? (cdr lst)) lst
-        (append (list (car lst) `+) (add-it (cdr lst)))))
+        (append (list (car lst) '+) (add-it (cdr lst)))))
 
-(displayn "add-it: " (add-it `(1 2 3 4)))
+(displayn "add-it: " (add-it '(1 2 3 4)))
 
 (define (make-sum a1 . a2)
     (let ((others (cdr a2)))
@@ -48,30 +48,30 @@
             ((and (number? a1) (null? others) (number? (car a2))) (+ a1 a2))
             ((and (=number? a1 0) (not (null? others))) (add-it a2))
             ((=number? a2 0) a1)
-            (else (list a1 `+ a2)))))
+            (else (list a1 '+ a2)))))
     
 
-(displayn "make-sum: " (make-sum `x `1))
-(displayn "make-sum: " (make-sum `x `y))
-(displayn "make-sum: " (make-sum `x `1))
-(displayn "make-sum: " (make-sum `x `0))
-(displayn "make-sum: " (make-sum `0 `x))
-(displayn "make-sum: " (make-sum `3 `1))
+(displayn "make-sum: " (make-sum 'x '1))
+(displayn "make-sum: " (make-sum 'x 'y))
+(displayn "make-sum: " (make-sum 'x '1))
+(displayn "make-sum: " (make-sum 'x '0))
+(displayn "make-sum: " (make-sum '0 'x))
+(displayn "make-sum: " (make-sum '3 '1))
 
 
 (define (product? e)
-    (if (and (pair? e) (eq? `* (cadr e))) #t #f))
-(displayn "product?: " (product? `(1 * 2)))
+    (if (and (pair? e) (eq? '* (cadr e))) #t #f))
+(displayn "product?: " (product? '(1 * 2)))
 
 ;被乘数
 (define (multiplier e)
     (if (product? e) (car e) #f))
-(displayn "multiplier: " (multiplier `(1 * 2)))
+(displayn "multiplier: " (multiplier '(1 * 2)))
 
 ;乘数
 (define (multiplicand e)
     (if (product? e) (caddr e) #f))
-(displayn "multiplicand: " (multiplicand `(1 * 2)))
+(displayn "multiplicand: " (multiplicand '(1 * 2)))
 
 (define (make-product a1 a2)
     (cond 
@@ -79,9 +79,9 @@
         ((=number? a1 1) a2)
         ((=number? a2 1) a1)
         ((and (number? a1) (number? a2)) (* a1 a2))
-        (else (list a1 `* a2))))
+        (else (list a1 '* a2))))
 
-(displayn "make-product: " (make-product `a `b))
+(displayn "make-product: " (make-product 'a 'b))
 
 (define (deriv e var)
     (cond ((number? e) 0)
@@ -95,10 +95,10 @@
         (else #f)
     ))
 
-(displayn "deriv: " (deriv `(x + 1) `x))
-(displayn "deriv: "  (deriv `(x * 1) `x))
-(displayn "deriv: "  (deriv `(x * y) `x))
-(displayn "deriv: "  (deriv `((x * y) * (x * 3)) `x))
+(displayn "deriv: " (deriv '(x + 1) 'x))
+(displayn "deriv: "  (deriv '(x * 1) 'x))
+(displayn "deriv: "  (deriv '(x * y) 'x))
+(displayn "deriv: "  (deriv '((x * y) * (x * 3)) 'x))
 
 
 

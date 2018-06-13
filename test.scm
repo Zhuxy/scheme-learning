@@ -46,8 +46,8 @@
                     fn
                     collector)))))
 
-(display (acc `() 0 (lambda (x) (* 2 x)) (lambda (x) x)))(newline)
-(display (acc `(1 2 3) 0 (lambda (x) (* 2 x)) (lambda (x) x)))(newline)
+(display (acc '() 0 (lambda (x) (* 2 x)) (lambda (x) x)))(newline)
+(display (acc '(1 2 3) 0 (lambda (x) (* 2 x)) (lambda (x) x)))(newline)
 
 (display "accumulator with continuation passing style??")(newline)
 (define acc-cps
@@ -67,7 +67,7 @@
             ))))
 
 (display 
-    (acc-cps `(1 2 3 4) 100
+    (acc-cps '(1 2 3 4) 100
         (lambda (x k) (k (* 2 x)))
         (lambda (x) x)))(newline)
 
@@ -79,7 +79,7 @@
     ))
 
 (display 
-    (acc-cc `(1 2 3 4) 100
+    (acc-cc '(1 2 3 4) 100
         (lambda (x) (* 2 x))
         (lambda (x) (* x 2))))(newline)
 
@@ -103,7 +103,7 @@
     ))
 
 (display 
-    (acc-cc `(1 2 3 4) 100
+    (acc-cc '(1 2 3 4) 100
         (lambda (x) (* 2 x))
         (lambda (x) x)))(newline)
         
@@ -138,19 +138,19 @@
 
 (define (test a . others)
     (display others))
-(test `1 `2 `3)
+(test '1 '2 '3)
 
 
 ;merge-map list1 lsit2 lambda(v1 v2)
 
 (define (merge-map f list1 list2)
-    (cond ((not (= (length list1) (length list2))) (error `merge-map "lists' length not equal"))
-        ((null? list1) `())
+    (cond ((not (= (length list1) (length list2))) (error 'merge-map "lists' length not equal"))
+        ((null? list1) '())
         (else 
             (cons (f (car list1) (car list2))
                 (merge-map f (cdr list1) (cdr list2))))))
 
-(display (merge-map + `(1 2 3) `(4 5 6)))
+(display (merge-map + '(1 2 3) '(4 5 6)))
 
 
 

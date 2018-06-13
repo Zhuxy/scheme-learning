@@ -17,7 +17,7 @@
 		((application? exp)
 			(apply (eval (operator exp) env)
 				(list-of-values (operands exp) env)))
-	(else (error `exp "Unknown expression type -- EVAL"))))
+	(else (error 'exp "Unknown expression type -- EVAL"))))
 
 (define (apply procedure arguments)
 	(cond ((primitive-procedure? procedure)
@@ -29,11 +29,11 @@
 					(procedure-parameters procedure)
 					arguments
 					(procedure-environment procedure))))
-		(else (error `apply "Unknown procedure type -- APPLY"))))
+		(else (error 'apply "Unknown procedure type -- APPLY"))))
 
 (define (list-of-values exps env)
 	(if (no-operands? exps)
-		`()
+		'()
 		(cons (eval (first-operand exps) env)
 			(list-of-values (rest-operands exps) evn))))
 
@@ -52,20 +52,20 @@
 		(assignment-variable exp)
 		(eval (assignment-value exp) env)
 		env)
-	`ok)
+	'ok)
 
 (define (eval-definition exp env)
 	(set-variable-value! 
 		(definition-variable exp)
 		(eval (definition-value exp) env)
 		env)
-	`ok)
+	'ok)
 
 ;4.1
 ;left order 
 (define (list-of-values-l exps env)
 	(if (no-operands? exps)
-		`()
+		'()
 		(let ((first (eval (first-operand exps) env)))
 			(cons first
 				(list-of-values (rest-operands exps) evn)))))
@@ -78,7 +78,7 @@
 ;right order
 (define (list-of-values-r exps env)
 	(if (no-operands? exps)
-		`()
+		'()
 		(let ((rest (list-of-values-r (rest-exps exps) env)))
 		(cons (eval (first-operand exps) env)
 			rest))))
@@ -96,17 +96,17 @@
 (define (variable? exp) (symbol? exp))
 
 (define (quoted? exp)
-	(tagged-list? exp `quote))
+	(tagged-list? exp 'quote))
 
 (define (text-of-quotation exp) (cadr exp))
 
-(define (assignment? exp) (tagged-list? exp `set!))
+(define (assignment? exp) (tagged-list? exp 'set!))
 
 (define (assignment-variable exp) (cadr exp))
 
 (define (assignment-value exp) (caddr exp))
 
-(define (definition? exp) (tagged-list? exp `define))
+(define (definition? exp) (tagged-list? exp 'define))
 
 (define (definition-variable exp)
 	(if (symbol? (cadr exp)) (cadr exp) (caadr exp)))
@@ -117,17 +117,17 @@
 		(make-lambda (cdadr exp) (cddr exp))))
 
 ;(lambda (x y) (+ x y))
-(define (lambda? exp) (tagged-list? exp `lambda))
+(define (lambda? exp) (tagged-list? exp 'lambda))
 
 (define (lambda-parameters exp) (cadr exp))
 
 (define (lambda-body exp) (cddr exp))
 
 (define (make-lambda parameters body)
-	(cons `lambda (cons parameters body)))
+	(cons 'lambda (cons parameters body)))
 
 ;(if (> x 1) #t #f)
-(define (if? exp) (tagged-list? exp `if))
+(define (if? exp) (tagged-list? exp 'if))
 
 (define (if-predicate exp) (cadr exp))
 
@@ -137,10 +137,10 @@
 	(if (null? (cdddr exp)) #f (cadddr exp)))
 
 (define (make-if predicate consequent alternative)
-	(list `if predicate consequent alternative))
+	(list 'if predicate consequent alternative))
 
 ;(begin body1 body1 ...)
-(define (begin? exp) (tagged-list? exp `begin))
+(define (begin? exp) (tagged-list? exp 'begin))
 
 (define (begin-actions exp) (cdr exp))
 
@@ -150,7 +150,7 @@
 
 (define (rest-exps seq) (cdr seq))
 
-(define (make-begin seq) (cons `begin seq))
+(define (make-begin seq) (cons 'begin seq))
 
 (define (sequence->exp seq)
 	(cond ((null? seq) seq)
@@ -173,12 +173,12 @@
 ;(cond
 ;	(predicate body1 body2 body3 ...)
 ;	(else body1 body2 body3 ...))
-(define (cond? exp) (tagged-list? exp `cond))
+(define (cond? exp) (tagged-list? exp 'cond))
 
 (define (cond-clauses exp) (cdr exp))
 
 (define (cond-else-clause? clause)
-	(eq? (cond-predicate clause) `else))
+	(eq? (cond-predicate clause) 'else))
 
 (define (cond-predicate clause) (car clause))
 
@@ -194,7 +194,7 @@
 			(if (cond-else-clause? first)
 				(if (null? rest)
 					(sequence->exp (cond-actions first))
-					(error `cond->if "ELSE clause isn`t last -- COND->IF"))
+					(error 'cond->if "ELSE clause isn't last -- COND->IF"))
 				(make-if (cond-predicate first)
 					(sequence->exp (cond-actions first))
 					(expand-clauses rest))))))
