@@ -48,6 +48,7 @@
   (cond ((last-exp? exps) (eval (first-exp exps) env))
     (else 
       (eval (first-exp exps) env)
+      ;4.30(c) (actual-value (first-exp exps) env)
       (eval-sequence (rest-exps exps) env))))
 
 (define (tagged-list? exp tag)

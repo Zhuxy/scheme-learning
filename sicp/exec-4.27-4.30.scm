@@ -22,19 +22,52 @@
 ;(eval '(display (square (id 10))) the-global-environment)
 ;参数x: trunked (id 10)执行过一次后会被记忆, 作为乘数的时候直接获取记忆的值, 所以count只会被+1
 
-;4.30
-(eval
-  '(define (for-each proc items)
+;4.30(a)
+(eval '
+  (define (for-each proc items)
     (if (null? items) 'done
       (begin (proc (car items))
         (for-each proc (cdr items)))))
 the-global-environment)
 
-(eval
-  '(for-each 
-      (lambda (x) (newline) (display x))
-      (list 11 22 33))
+(eval '
+  (for-each 
+    (lambda (x) (newline) (display x))
+    (list 11 22 33))
 the-global-environment)
 
+(newline)
+;for-each函数体里的null? 包括proc里的display都是基本过程, 会对参数严格求值
+
+;4.30(b)
+(eval ' 
+  (define (p1 x)
+    (set! x (cons x '(2)))
+    x)
+the-global-environment)
+
+(eval ' 
+  (define (p2 x)
+    (define (p e)
+      e
+      x)
+    (p (set! x (cons x '(2)))))
+the-global-environment)
+
+(eval ' 
+  (display (p1 1))
+the-global-environment)(newline)
+
+(eval ' 
+  (display (p2 1))
+the-global-environment)
+
+;p1中eval set!时会严格求值
+;display p2 会强制eval p2的最后一句, 再eval p函数调用时, 参数e是非严格求值, 不会立刻执行, 最终返回x, 跳过了e的求值
+
+;4.30(c)
+
+;4.30(d)
+;在有赋值的语言中, 语句可能会有副作用, 最好是在处理语句序列时严格求职, 不然无法预测程序的行为?
 
 
