@@ -61,7 +61,7 @@
     (require (not (= cooper 1)))
     (require (not (= fletcher 5)))
     (require (not (= fletcher 1)))
-    (require (= (- miller cooper) 1))
+    (require (> miller cooper))
     (require (not (= (abs (- smith fletcher)) 1)))
     (require (not (= (abs (- fletcher cooper)) 1)))
     (list (list 'baker baker)
@@ -70,7 +70,8 @@
           (list 'miller miller)
           (list 'smith smith))))
 
-;[[1,2,3,5,4],[1,4,3,5,2],[4,3,2,5,1]]
+;[[1,4,3,5,2]]
+
 
 ;4.39
 (define (multiple-dwelling)
@@ -83,7 +84,7 @@
     (require (not (= cooper 1)))
     (require (not (= fletcher 5)))
     (require (not (= fletcher 1)))
-    (require (= (- miller cooper) 1))
+    (require (> miller cooper) 1)
     (require (not (= (abs (- smith fletcher)) 1)))
     (require (not (= (abs (- fletcher cooper)) 1)))
     (require
@@ -116,6 +117,38 @@
 
 (define (not-neighbour x n)
   (amb (+ x (+ n 1)) (- x (+ n 1))))
+
+;4.41
+;先实现排列组合
+;再用filter去过滤
+
+;4.42
+(define (xor p q) (if p (not q) q))
+(define (lier)
+  (let ((betty (amb 1 2 3 4 5))
+        (ethel (amb 1 2 3 4 5))
+        (john (amb 1 2 3 4 5))
+        (kitty (amb 1 2 3 4 5))
+        (mary (amb 1 2 3 4 5)))
+    (require (xor (= kitty 2) (= betty 3)))
+    (require (xor (= john 2) (= ethel 1)))
+    (require (xor (= ethel 5) (= john 3)))
+    (require (xor (= kitty 2) (= mary 4)))
+    (require (xor (= mary 4) (= betty 1)))
+    (require
+      (distinct? (list betty ethel john kitty mary)))
+    (list 
+      (list 'betty betty)
+      (list 'ethel ethel)
+      (list 'john john)
+      (list 'kitty kitty)
+      (list 'mary mary))))
+
+
+;4.43
+
+;4.44
+
 
 
 
