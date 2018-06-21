@@ -298,6 +298,7 @@
     (list '/ /)
     (list '< <)
     (list '> >)
+    (list 'list list)
   )
 )
 
@@ -337,16 +338,32 @@
   (apply-in-underlying-scheme
     (primitive-implementation proc) args))
 
-(define input-prompt "::: M~Eval input: ")
-(define output-prompt "::: M-Eval value: ")
+(define input-prompt "::: Amb~Eval input: ")
+(define output-prompt "::: Amb-Eval value: ")
 
 (define (driver-loop)
-  (prompt-for-input input-prompt)
-  (let ((input (read)))
-    (let ((output (eval input the-global-environment)))
-      (announce-output output-prompt)
-      (user-print output)))
-  (driver-loop))
+  (define (internal-loop try-again)
+    (prompt-for-input input-prompt)
+    (let ((input (read)))
+      (if (eq? input 'try-again)
+        (try-again)
+        (begin
+          (newline)
+          (display ";;; Starting a new problem ")
+          (ambeval input the-global-environment
+            (lambda (val next-alternative)
+              (announce-output output-prompt)
+              (user-print val)
+              (internal-loop next-alternative))
+            (lambda ()
+              (announce-output ";;; There are no more values of ")
+              (user-print input)
+              (driver-loop)))))))
+  (internal-loop
+    (lambda ()
+      (newline)
+      (display ";;; There is no current problem")
+      (driver-loop))))
 
 (define (prompt-for-input string)
   (newline)(newline)(display string)(newline))
@@ -470,17 +487,21 @@
     ((quoted? exp) (analyze-quoted exp))
     ((variable? exp) (analyze-variable exp))
     ((assignment? exp) (analyze-assignment exp))
+    ((permanent-set? exp) (analyze-permanent-set exp))
     ((definition? exp) (analyze-definition exp))
     ((if? exp) (analyze-if exp))
+    ((if-fail? exp) (analyze-if-fail exp))
+    ((require? exp) (analyze-require exp))
     ((let? exp) (analyze-let (let->combination exp)))
     ((lambda? exp) (analyze-lambda exp))
     ((begin? exp) (analyze-sequence (begin-actions exp)))
     ((cond? exp) (analyze (cond->if exp)))
     ((amb? exp) (analyze-amb exp))
+    ((ramb? exp) (analyze-ramb exp))
     ((application? exp) (analyze-application exp))
     (else 'analyze (error "Unknown expression type 一- ANALYZE" exp))))
 
-(define (amb? exp) (tagged-list exp 'amb))
+(define (amb? exp) (tagged-list? exp 'amb))
 
 (define (amb-choices exp) (cdr exp))
 
@@ -592,22 +613,130 @@
 
 (define (execute-application proc args succeed fail)
   (cond ((primitive-procedure? proc)
-          (apply-primitive-procedure proc args))
+          (succeed (apply-primitive-procedure proc args) fail))
         ((compound-procedure? proc)
           ((procedure-body proc)
             (extend-environment (procedure-parameters proc) 
                                 args
-                                (procedure-environment proc))))
+                                (procedure-environment proc))
+            succeed
+            fail))
         (else (error 'execute-application "Unknown procedure type" proc))))
 
 (define (analyze-let exp)
   (let ((fproc (analyze-lambda (car exp)))
         (aprocs (map analyze (cdr exp))))
-      (lambda (env)
-        (execute-application
-          (fproc env)
-          (map (lambda (aproc) (aproc env)) aprocs)))))
+    (lambda (env succeed fail)
+      (fproc env
+        (lambda (proc fail2)
+          (get-args aprocs
+            env
+            (lambda (args fail3)
+              (execute-application proc args succeed fail3))
+            fail2))
+        fail))))
 
 
+(define (analyze-amb exp)
+  (let ((cprocs (map analyze (amb-choices exp))))
+    (lambda (env succeed fail)
+      (define (try-next choices)
+        (if (null? choices)
+          (fail)
+          ((car choices) env succeed 
+            (lambda () (try-next (cdr choices))))))
+      (try-next cprocs))))
+
+;4.50
+(define (ramb? exp) (tagged-list? exp 'ramb))
+
+(define (analyze-ramb exp)
+  (let ((cprocs (map analyze (amb-choices exp))))
+    ;对cprocs随机排序
+    (set! cprocs (random-sort cprocs))
+    (lambda (env succeed fail)
+      (define (try-next choices)
+        (if (null? choices)
+          (fail)
+          ((car choices) env succeed 
+            (lambda () (try-next (cdr choices))))))
+      (try-next cprocs))))
+
+(define (random-sort list)
+  (list-sort
+    (lambda (a b)
+      (let ((r (random 10)))
+        (if (> r 4) #t #f)))
+    list))
+
+;4.51
+(define (permanent-set? exp) (tagged-list? exp 'permanent-set!))
+
+(define (analyze-permanent-set exp)
+  (let ((var (assignment-variable exp))
+    (vproc (analyze (assignment-value exp))))
+    (lambda (env succeed fail)
+      (vproc env
+        (lambda (value fail2)
+            (set-variable-value! var value env)
+            (succeed 'ok fail2))
+        fail))))
+
+(ambeval
+  '(define count 0)
+  the-global-environment
+  (lambda (val fail) (display val))
+  (lambda () (display 'failed))
+)
+
+(ambeval
+  '(let ((x (amb 'a 'b 'c)) (y (amb 'a 'b 'c))) (permanent-set! count (+ count 1)) (list x y count))
+  the-global-environment
+  (lambda (val fail) (display val))
+  (lambda () (display 'failed))
+)
+
+
+;4.52
+;(if-fail 
+;  (let ((x (amb '(1 2 3))))
+;    (require (even? x))
+;    x)
+;  'all-odd)
+
+(define (if-fail? exp) (tagged-list? exp 'if-fail))
+
+(define (analyze-if-fail exp)
+  (let ((eproc (analyze (cadr exp)))
+    (aproc (analyze (caddr exp))))
+    (lambda (env succeed fail)
+      (eproc env
+        (lambda (value fail2)
+          (succeed value fail2))
+        (lambda ()
+          (aproc env
+            (lambda (value fail3)
+              (succeed value fail3))
+            (fail)))))))
+
+;4.54
+(define (require? exp) (tagged-list? exp 'require))
+
+(define (analyze-require exp)
+  (let ((pproc (analyze (cadr exp))))
+    (lambda (env succeed fail)
+      (pproc env
+        (lambda (pred-value fail2)
+          (if (not pred-value)
+            (fail2)
+            (succeed 'ok fail2)))
+        fail))))
+
+(ambeval
+  `(if-fail (let ((x (amb 1 2 3 4 5))) (require (> x 4)) x) 'all-odd)
+  the-global-environment
+  (lambda (val fail) (display val))
+  (lambda () (display 'failed))
+)
 
 

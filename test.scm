@@ -150,8 +150,14 @@
             (cons (f (car list1) (car list2))
                 (merge-map f (cdr list1) (cdr list2))))))
 
-(display (merge-map + '(1 2 3) '(4 5 6)))
+(display (merge-map + '(1 2 3) '(4 5 6)))(newline)
 
-
+(display
+(list-sort
+  (lambda (a b)
+    (let ((r (random 100)))
+      (if (> r 4) #t #f)))
+  '(1 2 3 4 5 6 7 8 9 10))
+)
 
 
